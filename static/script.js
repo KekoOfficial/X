@@ -1,52 +1,38 @@
-const btnCortar = document.getElementById("btn_cortar");
-const videosInput = document.getElementById("videos");
-const capSelect = document.getElementById("cap_duration");
-const progressFill = document.getElementById("progress_fill");
-const progressText = document.getElementById("progress_text");
-const videoList = document.getElementById("video_list");
-const clearHistoryBtn = document.getElementById("clear_history");
-const clearFolderBtn = document.getElementById("clear_folder");
-
-btnCortar.addEventListener("click", () => {
-    const files = videosInput.files;
-    if(files.length === 0) return alert("Selecciona al menos un vídeo");
-    
-    const formData = new FormData();
-    for(let f of files) formData.append("files", f);
-    formData.append("cap_duration", capSelect.value);
-
-    fetch("/upload", {method:"POST", body: formData})
-    .then(res => res.json())
-    .then(data => {
-        alert("Vídeos cortados correctamente!");
-        refreshList();
-    });
-
-    // Iniciar barra de progreso
-    const interval = setInterval(() => {
-        fetch("/progress").then(r=>r.json()).then(p=>{
-            const percent = Math.round((p.done/p.total)*100) || 0;
-            progressFill.style.width = percent + "%";
-            progressText.textContent = p.status + ` (${percent}%)`;
-            if(p.status === "Listo") clearInterval(interval);
-        });
-    }, 500);
-});
-
-function refreshList(){
-    fetch("/").then(r=>r.text()).then(html=>{
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html,"text/html");
-        const items = doc.querySelectorAll("#video_list li");
-        videoList.innerHTML = "";
-        items.forEach(i=>videoList.appendChild(i));
+function uploadCut(){
+    let files = document.getElementById("local_files").files;
+    let dur = document.getElementById("cap_duration").value;
+    let form = new FormData();
+    for(let i=0;i<files.length;i++) form.append("files", files[i]);
+    form.append("cap_duration", dur);
+    fetch("/upload_cut", {method:"POST", body: form}).then(res=>res.json()).then(data=>{
+        alert(data.message);
+        setTimeout(refreshList,2000);
     });
 }
 
-clearHistoryBtn.addEventListener("click", ()=>{
-    fetch("/clear_history").then(()=>refreshList());
-});
+function urlCut(){
+    let url = document.getElementById("video_url").value;
+    let dur = document.getElementById("cap_duration_url").value;
+    fetch("/url_cut", {method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({url:url, cap_duration: dur})
+    }).then(res=>res.json()).then(data=>{
+        alert(data.message);
+        setTimeout(refreshList,5000);
+    });
+}
 
-clearFolderBtn.addEventListener("click", ()=>{
-    fetch("/clear_folder").then(()=>refreshList());
-});
+function refreshList(){
+    fetch("/").then(res=>res.text()).then(html=>{
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html,"text/html");
+        document.getElementById("video_list").innerHTML = doc.getElementById("video_list").innerHTML;
+    });
+}
+
+function clearFolder(){
+    fetch("/clear_folder",{method:"POST"}).then(res=>res.json()).then(data=>{
+        alert("Carpeta y historial limpiados!");
+        refreshList();
+    });
+}
