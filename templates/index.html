@@ -1,47 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Cortador de Vídeos Khasam</title>
-<link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <title>Cortador de Vídeos Khasam</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h1>🎬 Cortador de Vídeos Khasam</h1>
+    <h1>🎬 Cortador de Vídeos Khasam</h1>
 
-<div class="panel">
-    <h2>Subir vídeo local</h2>
-    <input type="file" id="local_files" multiple>
-    <label>Duración por capítulo:</label>
-    <select id="cap_duration">
-        <option value="15">15s</option>
-        <option value="30">30s</option>
-        <option value="60">60s</option>
-    </select>
-    <button onclick="uploadCut()">Cortar</button>
-</div>
+    <div class="form-container">
+        <label>URL del vídeo:</label>
+        <input type="text" id="url" placeholder="https://www.dailymotion.com/video/xxxx">
 
-<div class="panel">
-    <h2>Descargar y cortar desde URL (Dailymotion)</h2>
-    <input type="text" id="video_url" placeholder="Pega el link aquí">
-    <label>Duración por capítulo:</label>
-    <select id="cap_duration_url">
-        <option value="15">15s</option>
-        <option value="30">30s</option>
-        <option value="60">60s</option>
-    </select>
-    <button onclick="urlCut()">Descargar y cortar</button>
-</div>
+        <label>Duración por capítulo (segundos):</label>
+        <select id="duration">
+            <option value="15">15s</option>
+            <option value="30">30s</option>
+            <option value="60">60s</option>
+        </select>
 
-<div class="panel">
-    <h2>Historial / Cortados</h2>
-    <button onclick="clearFolder()">Limpiar carpeta & historial</button>
-    <ul id="video_list">
-        {% for video in videos %}
-        <li><a href="/download/{{ video }}">{{ video }}</a></li>
-        {% endfor %}
-    </ul>
-</div>
+        <label>Número de capítulos:</label>
+        <input type="number" id="chapters" value="5">
 
-<script src="/static/script.js"></script>
+        <button onclick="cutVideo()">Cortar vídeo</button>
+        <button onclick="clearHist()">Borrar historial</button>
+        <button onclick="clearFolder()">Borrar carpeta</button>
+
+        <div id="progress"></div>
+    </div>
+
+    <h2>Historial</h2>
+    <ul id="historial"></ul>
+
+    <script src="/static/script.js"></script>
 </body>
 </html>
