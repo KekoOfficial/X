@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, send_from_directory
 import os
 import subprocess
+import json
 
 app = Flask(__name__)
 
@@ -10,11 +11,22 @@ OUTPUT_FOLDER = os.path.join(UPLOAD_FOLDER, "Cortados")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
+# 🔥 Obtener duración del video automáticamente
+def get_duration(file):
+    result = subprocess.run([
+        "ffprobe", "-v", "quiet",
+        "-print_format", "json",
+        "-show_format", file
+    ], capture_output=True, text=True)
+
+    data = json.loads(result.stdout)
+    return float(data["format"]["duration"])
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         files = request.files.getlist("files")
-        chapters = int(request.form.get("chapters", 1))
 
         count = len([f for f in os.listdir(OUTPUT_FOLDER) if f.endswith(".mp4")])
 
@@ -23,6 +35,14 @@ def index():
                 filename = file.filename
                 filepath = os.path.join(UPLOAD_FOLDER, filename)
                 file.save(filepath)
+
+                # 🔥 duración del video
+                duration = get_duration(filepath)
+
+                # 🔥 calcular capítulos automáticamente
+                chapters = int(duration // 15)
+
+                print(f"Video duración: {duration}s → capítulos: {chapters}")
 
                 for i in range(chapters):
                     start = i * 15
@@ -54,5 +74,5 @@ def download(filename):
 
 
 if __name__ == "__main__":
-    print("Servidor activo en http://127.0.0.1:5000")
+    print("🔥 Servidor automático activo en http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000)
