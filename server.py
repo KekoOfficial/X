@@ -1,86 +1,34 @@
-from flask import Flask, render_template, request, send_from_directory, jsonify
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
-import subprocess
-import yt_dlp
+from config import UPLOAD_FOLDER, DOWNLOAD_FOLDER
+from utils import generate_unique_name, cut_video_by_chapters
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['DOWNLOAD_FOLDER'] = DOWNLOAD_FOLDER
 
-DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "Downloads")
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-HISTORIAL_FILE = os.path.join(DOWNLOAD_FOLDER, "historial.txt")
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("index.html")
+    videos = os.listdir(DOWNLOAD_FOLDER)
+    if request.method == "POST":
+        uploaded_files = request.files.getlist("files")
+        chapters = request.form.get("chapters")
+        chapters = int(chapters) if chapters else None
+
+        for file in uploaded_files:
+            filename = generate_unique_name(file.filename)
+            upload_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(upload_path)
+
+            cut_video_by_chapters(upload_path, chapters=chapters)
+
+        return redirect(url_for("index"))
+
+    return render_template("index.html", videos=videos)
 
 @app.route("/download/<filename>")
 def download(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
-
-@app.route("/cut", methods=["POST"])
-def cut_video():
-    url = request.form.get("url")
-    duration = int(request.form.get("duration"))  # duración por capítulo en segundos
-    chapters = int(request.form.get("chapters"))
-
-    # Descargar el vídeo usando yt-dlp
-    ydl_opts = {
-        'format': 'best[ext=mp4]',
-        'outtmpl': os.path.join(DOWNLOAD_FOLDER, 'video.%(ext)s')
-    }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-
-    input_video = os.path.join(DOWNLOAD_FOLDER, "video.mp4")
-    # Obtener duración total con ffprobe
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "default=noprint_wrappers=1:nokey=1", input_video],
-        capture_output=True, text=True
-    )
-    total_seconds = float(result.stdout.strip())
-    chapter_duration = total_seconds / chapters
-
-    # Cortar vídeos en capítulos
-    output_files = []
-    for i in range(chapters):
-        start = i * chapter_duration
-        end = min((i + 1) * chapter_duration, total_seconds)
-        output_name = f"video_{i+1}.mp4"
-        output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
-        subprocess.run([
-            "ffmpeg", "-i", input_video, "-ss", str(start), "-to", str(end),
-            "-c", "copy", output_path, "-y"
-        ])
-        output_files.append(output_name)
-
-        # Guardar en historial
-        with open(HISTORIAL_FILE, "a") as f:
-            f.write(f"{output_name} ({start:.2f}-{end:.2f}s)\n")
-
-    return jsonify({"status": "ok", "files": output_files})
-
-@app.route("/historial")
-def historial():
-    if os.path.exists(HISTORIAL_FILE):
-        with open(HISTORIAL_FILE, "r") as f:
-            lines = f.readlines()
-        return jsonify({"historial": [line.strip() for line in lines]})
-    return jsonify({"historial": []})
-
-@app.route("/clear_historial")
-def clear_historial():
-    if os.path.exists(HISTORIAL_FILE):
-        os.remove(HISTORIAL_FILE)
-    return jsonify({"status": "ok"})
-
-@app.route("/clear_folder")
-def clear_folder():
-    for f in os.listdir(DOWNLOAD_FOLDER):
-        if f.endswith(".mp4"):
-            os.remove(os.path.join(DOWNLOAD_FOLDER, f))
-    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
