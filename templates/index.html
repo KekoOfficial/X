@@ -1,39 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Cortador TikTok Khasam</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Cortador de Vídeos Khasam</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h1>🎬 Cortador TikTok Khasam</h1>
+    <h1>🎬 Cortador de Vídeos Khasam</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label>Selecciona vídeos (MP4):</label>
+        <input type="file" name="files" multiple required><br><br>
+        <label>Número de capítulos:</label>
+        <input type="number" name="chapters" min="1" placeholder="Ej: 5, 10"><br><br>
+        <button type="submit">Cortar Vídeos</button>
+    </form>
 
-<form id="uploadForm" method="post" enctype="multipart/form-data">
-  <label>Selecciona vídeos (MP4):</label><br>
-  <input type="file" name="files" multiple required><br>
-
-  <label>Duración por capítulo (segundos):</label>
-  <select name="duration">
-    <option value="15">15s</option>
-    <option value="30">30s</option>
-    <option value="60">60s</option>
-  </select><br><br>
-
-  <button type="submit">Cortar Vídeos</button>
-</form>
-
-<div class="progress-bar"><div id="progress" class="progress"></div></div>
-
-<h2>Vídeos cortados:</h2>
-<ul id="videoList">
-  <!-- Lista de vídeos generada por Flask -->
-</ul>
-
-<div class="buttons">
-  <button id="clearHistory">Borrar Historial</button>
-  <button id="clearFolder">Borrar Carpeta de Cortes</button>
-</div>
-
-<script src="script.js"></script>
+    <h2>Vídeos cortados:</h2>
+    <ul>
+        {% for video in videos %}
+        <li><a href="{{ url_for('download', filename=video) }}">{{ video }}</a></li>
+        {% endfor %}
+    </ul>
 </body>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </html>
