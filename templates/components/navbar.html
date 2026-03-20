@@ -1,6 +1,6 @@
-<nav>
-    <a href="/">Inicio</a>
-    <a href="/upload">Subir</a>
-    <a href="/link">Link</a>
-    <a href="/history">Historial</a>
+<nav class="navbar">
+    <a href="{{ url_for('index') }}">Inicio</a>
+    <a href="{{ url_for('link_download') }}">Link Video</a>
+    <a href="{{ url_for('upload_file') }}">Subir Archivo</a>
+    <a href="{{ url_for('history_page') }}">Historial</a>
 </nav>
