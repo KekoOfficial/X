@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir Archivo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container">
+        <h1>Subir Vídeo</h1>
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" name="video_file" accept="video/*" required>
+            <label>Número de capítulos:</label>
+            <input type="number" name="chapters" min="1" max="300" value="5" required>
+            <label>Duración por capítulo (segundos):</label>
+            <select name="duration">
+                <option value="15">15s</option>
+                <option value="30">30s</option>
+                <option value="60">60s</option>
+            </select>
+            <button class="btn">Cortar Vídeo</button>
+        </form>
+    </div>
+
+    {% include 'components/footer.html' %}
+</body>
+</html>
