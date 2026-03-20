@@ -4,17 +4,15 @@ import os, subprocess, math, threading, datetime
 app = Flask(__name__)
 
 UPLOAD = "uploads"
-TEMP = "temp"
 GALLERY = "/storage/emulated/0/Movies/MallyCuts"
 
 os.makedirs(UPLOAD, exist_ok=True)
-os.makedirs(TEMP, exist_ok=True)
 os.makedirs(GALLERY, exist_ok=True)
 
 history = []
 tasks = {}
 
-# 🔥 Obtener duración real
+# 🔥 Duración real del video
 def get_duration(path):
     result = subprocess.run([
         "ffprobe","-v","error",
@@ -24,7 +22,7 @@ def get_duration(path):
     ], stdout=subprocess.PIPE)
     return float(result.stdout)
 
-# 🚀 PROCESO DIOS
+# 🚀 Corte automático
 def process_video(task_id, path, duration):
     total = get_duration(path)
     parts = math.ceil(total / duration)
@@ -35,7 +33,6 @@ def process_video(task_id, path, duration):
 
     for i in range(parts):
         start = i * duration
-
         output = os.path.join(folder, f"{name} #{i+1}.mp4")
 
         cmd = [
@@ -47,7 +44,9 @@ def process_video(task_id, path, duration):
             output
         ]
 
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("Ejecutando:", " ".join(cmd))  # 🔥 DEBUG
+
+        subprocess.run(cmd)  # SIN ocultar errores
 
         tasks[task_id]["progress"] = int(((i+1)/parts)*100)
 
@@ -59,12 +58,23 @@ def process_video(task_id, path, duration):
         "date": str(datetime.datetime.now())
     })
 
+    # 🧹 borrar archivo original
+    try:
+        os.remove(path)
+    except:
+        pass
+
 # 🏠 HOME
 @app.route('/')
 def home():
     return render_template("index.html")
 
-# 📁 SUBIR
+# 📁 PAGINA SUBIR
+@app.route('/upload', methods=['GET'])
+def upload_page():
+    return render_template("upload.html")
+
+# 📁 SUBIR VIDEO
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files['file']
@@ -82,9 +92,9 @@ def upload():
 
     threading.Thread(target=process_video, args=(task_id, path, duration)).start()
 
-    return jsonify({"task_id": task_id})
+    return redirect(url_for('home'))
 
-# 📊 PROGRESO POR TAREA
+# 📊 PROGRESO
 @app.route('/progress/<task_id>')
 def progress(task_id):
     return jsonify(tasks.get(task_id, {}))
@@ -94,7 +104,7 @@ def progress(task_id):
 def history_page():
     return render_template("history.html", history=history)
 
-# 🧹 LIMPIAR HISTORIAL
+# 🧹 LIMPIAR
 @app.route('/clear')
 def clear():
     global history
