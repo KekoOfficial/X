@@ -1,31 +1,54 @@
 body {
-    font-family: Arial, sans-serif;
-    background: #1c1c1c;
-    color: #f0f0f0;
+    font-family: 'Arial', sans-serif;
+    background: #121212;
+    color: #fff;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
 }
-h1 { color: #00ffff; }
-form {
-    background: #333;
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    background: #1e1e1e;
     padding: 20px;
     border-radius: 10px;
-    margin-bottom: 20px;
-    width: 300px;
 }
-input, button {
-    margin: 5px 0;
+
+h1 {
+    text-align: center;
+}
+
+input, select, button {
+    width: 100%;
     padding: 10px;
+    margin: 5px 0;
     border-radius: 5px;
     border: none;
-    width: 100%;
 }
+
 button {
-    background: #00ffff;
-    color: #000;
+    background: #ff6600;
+    color: #fff;
     cursor: pointer;
 }
-ul { list-style: none; padding: 0; width: 300px; }
-a { color: #00ffff; text-decoration: none; word-wrap: break-word; }
+
+button:hover {
+    background: #e55b00;
+}
+
+.progress {
+    width: 100%;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+#progressBar {
+    height: 100%;
+    width: 0%;
+    background: #ff6600;
+}
