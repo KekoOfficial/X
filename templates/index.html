@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>App de Vídeos</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    {% include 'components/navbar.html' %}
+{% include 'components/navbar.html' %}
 
-    <div class="container">
-        <h1>Bienvenido a tu App de Vídeos</h1>
-        <p>Elige una opción para cortar tu vídeo:</p>
-        <a class="btn" href="/upload_file">Subir Archivo</a>
-        <a class="btn" href="/link_download">Descargar desde Link</a>
-    </div>
+<h1>Mally Cutter PRO</h1>
 
-    {% include 'components/footer.html' %}
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+<div class="menu">
+    <a href="/upload">📁 Subir Video</a>
+    <a href="/link">🔗 Descargar Link</a>
+    <a href="/history">📜 Historial</a>
+</div>
+
+{% include 'components/footer.html' %}
