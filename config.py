@@ -1,16 +1,13 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 DOWNLOAD_FOLDER = os.path.join(BASE_DIR, "Downloads")
-THUMBNAILS_FOLDER = os.path.join(BASE_DIR, "thumbnails")
-LOGS_FOLDER = os.path.join(BASE_DIR, "logs")
-TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
+LOG_FOLDER = os.path.join(BASE_DIR, "logs")
 
-# Duración por capítulo en segundos
-CHAPTER_DURATION = 15
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+os.makedirs(LOG_FOLDER, exist_ok=True)
 
-# Crear carpetas si no existen
-for folder in [UPLOAD_FOLDER, DOWNLOAD_FOLDER, THUMBNAILS_FOLDER, LOGS_FOLDER, TEMP_FOLDER]:
-    os.makedirs(folder, exist_ok=True)
+# Duraciones posibles por capítulo en segundos
+CHAPTER_OPTIONS = [15, 30, 60]
