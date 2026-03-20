@@ -4,7 +4,7 @@ from config import *
 
 app = Flask(__name__)
 
-# Crear carpetas
+# 🔥 Crear carpetas automáticamente
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 os.makedirs(LOG_FOLDER, exist_ok=True)
@@ -12,21 +12,29 @@ os.makedirs(GALLERY_FOLDER, exist_ok=True)
 
 history = []
 
-# 🔥 Duración del video
+# 🎯 Obtener duración real del video
 def get_duration(path):
     result = subprocess.run([
         "ffprobe","-v","error",
         "-show_entries","format=duration",
         "-of","default=noprint_wrappers=1:nokey=1",
         path
-    ], stdout=subprocess.PIPE)
-    return float(result.stdout)
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    try:
+        return float(result.stdout)
+    except:
+        return 0
 
-# 🚀 Corte automático
+# 🚀 Corte automático perfecto
 def cut_video(path, duration):
     total = get_duration(path)
-    parts = math.ceil(total / duration)
 
+    if total == 0:
+        print("❌ Error leyendo duración del video")
+        return
+
+    parts = math.ceil(total / duration)
     name = os.path.splitext(os.path.basename(path))[0]
 
     for i in range(parts):
@@ -45,10 +53,19 @@ def cut_video(path, duration):
             output_download
         ]
 
+        print("▶ Ejecutando:", " ".join(cmd))  # DEBUG
+
         subprocess.run(cmd)
 
-        # Copiar a galería
+        # 📱 Copiar a galería
         subprocess.run(["cp", output_download, output_gallery])
+
+        # 📱 Forzar actualización galería (Android)
+        subprocess.run([
+            "am","broadcast",
+            "-a","android.intent.action.MEDIA_SCANNER_SCAN_FILE",
+            "-d", f"file://{output_gallery}"
+        ])
 
     history.append({
         "name": name,
@@ -76,6 +93,9 @@ def upload_file():
         file = request.files['video_file']
         duration = int(request.form['duration'])
 
+        if not file:
+            return "❌ No se subió archivo"
+
         path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(path)
 
@@ -85,16 +105,21 @@ def upload_file():
 
     return render_template("upload_file.html")
 
-# 🔗 LINK
+# 🔗 LINK (directo mp4)
 @app.route('/link', methods=['GET','POST'])
 def link_download():
     if request.method == 'POST':
         url = request.form['video_url']
         duration = int(request.form['duration'])
 
-        temp = os.path.join(UPLOAD_FOLDER, "temp.mp4")
+        temp = os.path.join(UPLOAD_FOLDER, "temp_video.mp4")
 
-        subprocess.run(["wget", url, "-O", temp])
+        print("⬇ Descargando:", url)
+
+        try:
+            subprocess.run(["wget", url, "-O", temp])
+        except:
+            return "❌ Error descargando"
 
         cut_video(temp, duration)
 
@@ -102,10 +127,11 @@ def link_download():
 
     return render_template("link_download.html")
 
-# 📥 DESCARGA
+# 📥 DESCARGAR ARCHIVO
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
+# 🚀 INICIO
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
