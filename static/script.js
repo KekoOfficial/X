@@ -1,7 +1,6 @@
 const cutBtn = document.getElementById("cut_btn");
 const fileInput = document.getElementById("file");
 const capDuration = document.getElementById("cap_duration");
-const numCaps = document.getElementById("num_caps");
 const progressFill = document.getElementById("progress_fill");
 const progressText = document.getElementById("progress_text");
 const histList = document.getElementById("hist_list");
@@ -22,7 +21,6 @@ cutBtn.onclick = async () => {
     const fd = new FormData();
     fd.append("file", fileInput.files[0]);
     fd.append("cap_duration", capDuration.value);
-    fd.append("num_caps", numCaps.value);
 
     progressFill.style.width = "0%";
     progressText.textContent = "0%";
@@ -31,7 +29,7 @@ cutBtn.onclick = async () => {
     const data = await res.json();
     if(data.success){
         progressFill.style.width = "100%";
-        progressText.textContent = "100%";
+        progressText.textContent = `100% - ${data.num_caps} capítulos creados`;
         loadHist();
     }
 };
