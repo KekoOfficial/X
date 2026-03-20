@@ -3,46 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <title>Cortador de Vídeos Khasam</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="container">
-    <h1>🎬 Cortador de Vídeos Khasam</h1>
-    
-    <div class="form-section">
-        <label>Selecciona vídeos (MP4):</label>
-        <input type="file" id="videos" multiple>
-        
-        <label>Duración de cada capítulo (segundos):</label>
-        <select id="cap_duration">
-            <option value="15">15s</option>
-            <option value="30">30s</option>
-            <option value="60">60s</option>
-        </select>
-        
-        <button id="btn_cortar">Cortar Vídeos</button>
-    </div>
-    
-    <div class="progress-section">
-        <div id="progress_bar"><div id="progress_fill"></div></div>
-        <span id="progress_text"></span>
-    </div>
-    
-    <div class="history">
-        <h2>Vídeos cortados:</h2>
-        <ul id="video_list">
-            {% for video in videos %}
-            <li><a href="/download/{{ video }}">{{ video }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-    
-    <div class="actions">
-        <button id="clear_history">Borrar Historial</button>
-        <button id="clear_folder">Borrar Carpeta</button>
-    </div>
+<h1>🎬 Cortador de Vídeos Khasam</h1>
+
+<div class="panel">
+    <h2>Subir vídeo local</h2>
+    <input type="file" id="local_files" multiple>
+    <label>Duración por capítulo:</label>
+    <select id="cap_duration">
+        <option value="15">15s</option>
+        <option value="30">30s</option>
+        <option value="60">60s</option>
+    </select>
+    <button onclick="uploadCut()">Cortar</button>
 </div>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+<div class="panel">
+    <h2>Descargar y cortar desde URL (Dailymotion)</h2>
+    <input type="text" id="video_url" placeholder="Pega el link aquí">
+    <label>Duración por capítulo:</label>
+    <select id="cap_duration_url">
+        <option value="15">15s</option>
+        <option value="30">30s</option>
+        <option value="60">60s</option>
+    </select>
+    <button onclick="urlCut()">Descargar y cortar</button>
+</div>
+
+<div class="panel">
+    <h2>Historial / Cortados</h2>
+    <button onclick="clearFolder()">Limpiar carpeta & historial</button>
+    <ul id="video_list">
+        {% for video in videos %}
+        <li><a href="/download/{{ video }}">{{ video }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script src="/static/script.js"></script>
 </body>
 </html>
