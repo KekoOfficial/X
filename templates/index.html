@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<h1>🎬 Cortador PRO</h1>
+<h1>🎬 Khasam Cutter PRO</h1>
 
 <form method="post" enctype="multipart/form-data">
     <input type="file" name="files" multiple required>
@@ -19,14 +19,22 @@
         <option value="60">60 segundos</option>
     </select>
 
-    <button type="submit">Cortar Automáticamente</button>
+    <button type="submit">🚀 CREAR VIDEOS</button>
 </form>
 
 <h2>📂 Videos generados:</h2>
-
 <ul>
 {% for video in videos %}
 <li><a href="/download/{{video}}">{{video}}</a></li>
+{% endfor %}
+</ul>
+
+<h2>🕒 Historial</h2>
+<ul>
+{% for item in historial %}
+<li>
+🎥 {{item.video}} | ⏱ {{item.duracion}}s | 🎬 {{item.clips}} clips | 📅 {{item.fecha}}
+</li>
 {% endfor %}
 </ul>
 
