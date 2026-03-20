@@ -1,44 +1,48 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Cortador de Vídeos Khasam</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
     <h1>🎬 Cortador de Vídeos Khasam</h1>
-
+    
     <div class="form-section">
-        <label>Selecciona vídeo (MP4):</label>
-        <input type="file" id="file">
-
-        <label>Duración de capítulo:</label>
+        <label>Selecciona vídeos (MP4):</label>
+        <input type="file" id="videos" multiple>
+        
+        <label>Duración de cada capítulo (segundos):</label>
         <select id="cap_duration">
             <option value="15">15s</option>
             <option value="30">30s</option>
             <option value="60">60s</option>
         </select>
-
-        <button id="cut_btn">Crear Capítulos</button>
+        
+        <button id="btn_cortar">Cortar Vídeos</button>
     </div>
-
+    
     <div class="progress-section">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress_fill"></div>
-        </div>
-        <p id="progress_text">0%</p>
-        <p id="progress_status"></p>
+        <div id="progress_bar"><div id="progress_fill"></div></div>
+        <span id="progress_text"></span>
     </div>
-
-    <div class="historial-section">
-        <h2>Historial</h2>
-        <button id="clear_hist">Clear Historial</button>
-        <button id="clear_folder">Clear Carpeta</button>
-        <ul id="hist_list"></ul>
+    
+    <div class="history">
+        <h2>Vídeos cortados:</h2>
+        <ul id="video_list">
+            {% for video in videos %}
+            <li><a href="/download/{{ video }}">{{ video }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="actions">
+        <button id="clear_history">Borrar Historial</button>
+        <button id="clear_folder">Borrar Carpeta</button>
     </div>
 </div>
 
-<script src="/static/script.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
