@@ -7,32 +7,25 @@ body {
     align-items: center;
     padding: 30px;
 }
-
 h1 { color: #00ffff; }
-
-.form-container {
+form {
     background: #333;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
-    width: 350px;
-    display: flex;
-    flex-direction: column;
+    width: 300px;
 }
-
-input, select, button {
+input, button {
     margin: 5px 0;
     padding: 10px;
     border-radius: 5px;
     border: none;
     width: 100%;
 }
-
 button {
     background: #00ffff;
     color: #000;
     cursor: pointer;
 }
-
-ul { list-style: none; padding: 0; width: 350px; }
+ul { list-style: none; padding: 0; width: 300px; }
 a { color: #00ffff; text-decoration: none; word-wrap: break-word; }
