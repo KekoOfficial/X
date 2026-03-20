@@ -1,15 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Videos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
 {% include 'components/navbar.html' %}
 
-<h2>Historial</h2>
-
-<form method="POST">
-    <button type="submit">🧹 Limpiar</button>
-</form>
-
-<ul>
-{% for v in videos %}
-    <li>{{ v.name }} - {{ v.clips }} clips - {{ v.date }}</li>
-{% endfor %}
-</ul>
+<div class="container">
+    <h2>Historial de Vídeos Cortados</h2>
+    <button class="clear-btn">Limpiar Historial</button>
+    <div style="margin-top:20px;">
+        {% for video in videos %}
+            <div class="history-item">{{ video }}</div>
+        {% else %}
+            <p>No hay historial disponible.</p>
+        {% endfor %}
+    </div>
+</div>
 
 {% include 'components/footer.html' %}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
