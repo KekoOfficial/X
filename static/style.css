@@ -1,52 +1,117 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #0f0f0f;
-    color: #ffffff;
-    text-align: center;
-    padding: 20px;
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+}
+
+/* Título principal */
 h1 {
     color: #00ffff;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ffff;
 }
 
+/* Formularios */
 form {
-    background: #1c1c1c;
-    padding: 20px;
-    border-radius: 12px;
-    width: 300px;
-    margin: auto;
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 15px;
+    width: 350px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-input, select, button {
-    width: 100%;
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 6px;
+input[type="file"], select {
+    padding: 12px;
+    border-radius: 8px;
     border: none;
-}
-
-button {
-    background: #00ffff;
-    color: black;
-    font-weight: bold;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 1rem;
     cursor: pointer;
 }
 
+select {
+    cursor: pointer;
+}
+
+/* Botón elegante */
+button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(45deg, #00ffff, #00ff99);
+    color: #000;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
 button:hover {
-    background: #00cccc;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffff, 0 0 30px #00ff99;
+}
+
+/* Secciones de videos e historial */
+h2 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
 }
 
 ul {
     list-style: none;
-    padding: 0;
+    width: 90%;
+    max-width: 500px;
 }
 
-li {
-    margin: 5px 0;
+ul li {
+    background: #1e1e1e;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
+ul li:hover {
+    background: #272727;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+/* Enlaces de videos */
 a {
     color: #00ffff;
     text-decoration: none;
+    word-break: break-word;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+    form {
+        width: 90%;
+        padding: 20px;
+    }
+    h1 {
+        font-size: 2rem;
+    }
 }
