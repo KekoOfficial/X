@@ -12,8 +12,8 @@
     <div class="form-section">
         <label>Selecciona vídeo (MP4):</label>
         <input type="file" id="file">
-        
-        <label>Duración de capítulo (segundos):</label>
+
+        <label>Duración de capítulo:</label>
         <select id="cap_duration">
             <option value="15">15s</option>
             <option value="30">30s</option>
@@ -28,6 +28,7 @@
             <div class="progress-fill" id="progress_fill"></div>
         </div>
         <p id="progress_text">0%</p>
+        <p id="progress_status"></p>
     </div>
 
     <div class="historial-section">
@@ -36,8 +37,8 @@
         <button id="clear_folder">Clear Carpeta</button>
         <ul id="hist_list"></ul>
     </div>
-
 </div>
+
 <script src="/static/script.js"></script>
 </body>
 </html>
