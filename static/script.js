@@ -1,46 +1,46 @@
-function cutVideo() {
-    const url = document.getElementById("url").value;
-    const duration = document.getElementById("duration").value;
-    const chapters = document.getElementById("chapters").value;
-    const progress = document.getElementById("progress");
+let uploadedFile = null;
 
-    progress.innerText = "⏳ Procesando...";
+document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const fileInput = document.getElementById('videoInput');
+    if (!fileInput.files.length) return alert('Selecciona un vídeo');
+    const file = fileInput.files[0];
+    let formData = new FormData();
+    formData.append('video', file);
 
-    fetch("/cut", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `url=${encodeURIComponent(url)}&duration=${duration}&chapters=${chapters}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        progress.innerText = "✅ Cortado correctamente!";
-        updateHist();
+    const res = await fetch('/upload', {method: 'POST', body: formData});
+    const data = await res.json();
+    if(data.filename) {
+        uploadedFile = data.filename;
+        alert('Vídeo subido correctamente');
+    }
+});
+
+document.getElementById('cutBtn').addEventListener('click', async () => {
+    if (!uploadedFile) return alert('Sube primero un vídeo');
+    const duration = document.getElementById('chapterDuration').value;
+    const res = await fetch('/cut', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: uploadedFile, chapter_duration: duration})
     });
-}
-
-function updateHist() {
-    fetch("/historial")
-        .then(res => res.json())
-        .then(data => {
-            const ul = document.getElementById("historial");
-            ul.innerHTML = "";
-            data.historial.forEach(line => {
-                const li = document.createElement("li");
-                li.innerHTML = line;
-                ul.appendChild(li);
-            });
+    const data = await res.json();
+    if (data.status === 'success') {
+        const downloadsDiv = document.getElementById('downloads');
+        downloadsDiv.innerHTML = '';
+        data.files.forEach(f => {
+            const link = document.createElement('a');
+            link.href = `/download/${f}`;
+            link.textContent = f;
+            link.download = f;
+            downloadsDiv.appendChild(link);
+            downloadsDiv.appendChild(document.createElement('br'));
         });
-}
+        alert('Vídeos cortados correctamente');
+    }
+});
 
-function clearHist() {
-    fetch("/clear_historial")
-        .then(() => updateHist());
-}
-
-function clearFolder() {
-    fetch("/clear_folder")
-        .then(() => updateHist());
-}
-
-// Actualizar historial al cargar la página
-updateHist();
+document.getElementById('clearBtn').addEventListener('click', async () => {
+    await fetch('/clear', {method: 'POST'});
+    document.getElementById('downloads').innerHTML = '';
+    alert('Descargas limpiadas');
+});
