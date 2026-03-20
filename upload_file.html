@@ -1,0 +1,17 @@
+{% include 'components/navbar.html' %}
+
+<h2>Subir Video</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="video_file" required>
+    
+    <select name="duration">
+        <option value="15">15s</option>
+        <option value="30">30s</option>
+        <option value="60">60s</option>
+    </select>
+
+    <button type="submit">Cortar</button>
+</form>
+
+{% include 'components/footer.html' %}
