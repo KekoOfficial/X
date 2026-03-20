@@ -1,18 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-import os, subprocess, math, threading, datetime
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+import os, subprocess, math, datetime
+from config import *
 
 app = Flask(__name__)
 
-UPLOAD = "uploads"
-GALLERY = "/storage/emulated/0/Movies/MallyCuts"
-
-os.makedirs(UPLOAD, exist_ok=True)
-os.makedirs(GALLERY, exist_ok=True)
+# Crear carpetas
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+os.makedirs(LOG_FOLDER, exist_ok=True)
+os.makedirs(GALLERY_FOLDER, exist_ok=True)
 
 history = []
-tasks = {}
 
-# 🔥 Duración real del video
+# 🔥 Duración del video
 def get_duration(path):
     result = subprocess.run([
         "ffprobe","-v","error",
@@ -23,17 +23,18 @@ def get_duration(path):
     return float(result.stdout)
 
 # 🚀 Corte automático
-def process_video(task_id, path, duration):
+def cut_video(path, duration):
     total = get_duration(path)
     parts = math.ceil(total / duration)
 
     name = os.path.splitext(os.path.basename(path))[0]
-    folder = os.path.join(GALLERY, name)
-    os.makedirs(folder, exist_ok=True)
 
     for i in range(parts):
         start = i * duration
-        output = os.path.join(folder, f"{name} #{i+1}.mp4")
+
+        output_name = f"{name} #{i+1}.mp4"
+        output_download = os.path.join(DOWNLOAD_FOLDER, output_name)
+        output_gallery = os.path.join(GALLERY_FOLDER, output_name)
 
         cmd = [
             "ffmpeg","-y",
@@ -41,16 +42,13 @@ def process_video(task_id, path, duration):
             "-i", path,
             "-t", str(duration),
             "-c","copy",
-            output
+            output_download
         ]
 
-        print("Ejecutando:", " ".join(cmd))  # 🔥 DEBUG
+        subprocess.run(cmd)
 
-        subprocess.run(cmd)  # SIN ocultar errores
-
-        tasks[task_id]["progress"] = int(((i+1)/parts)*100)
-
-    tasks[task_id]["status"] = "done"
+        # Copiar a galería
+        subprocess.run(["cp", output_download, output_gallery])
 
     history.append({
         "name": name,
@@ -58,58 +56,56 @@ def process_video(task_id, path, duration):
         "date": str(datetime.datetime.now())
     })
 
-    # 🧹 borrar archivo original
-    try:
-        os.remove(path)
-    except:
-        pass
-
 # 🏠 HOME
 @app.route('/')
-def home():
+def index():
     return render_template("index.html")
 
-# 📁 PAGINA SUBIR
-@app.route('/upload', methods=['GET'])
-def upload_page():
-    return render_template("upload.html")
-
-# 📁 SUBIR VIDEO
-@app.route('/upload', methods=['POST'])
-def upload():
-    file = request.files['file']
-    duration = int(request.form['duration'])
-
-    path = os.path.join(UPLOAD, file.filename)
-    file.save(path)
-
-    task_id = str(len(tasks)+1)
-
-    tasks[task_id] = {
-        "progress": 0,
-        "status": "processing"
-    }
-
-    threading.Thread(target=process_video, args=(task_id, path, duration)).start()
-
-    return redirect(url_for('home'))
-
-# 📊 PROGRESO
-@app.route('/progress/<task_id>')
-def progress(task_id):
-    return jsonify(tasks.get(task_id, {}))
-
 # 📜 HISTORIAL
-@app.route('/history')
+@app.route('/history', methods=['GET','POST'])
 def history_page():
-    return render_template("history.html", history=history)
-
-# 🧹 LIMPIAR
-@app.route('/clear')
-def clear():
     global history
-    history = []
-    return redirect(url_for('history_page'))
+    if request.method == 'POST':
+        history = []
+    return render_template("history.html", videos=history)
+
+# 📁 SUBIR ARCHIVO
+@app.route('/upload', methods=['GET','POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['video_file']
+        duration = int(request.form['duration'])
+
+        path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(path)
+
+        cut_video(path, duration)
+
+        return redirect(url_for('history_page'))
+
+    return render_template("upload_file.html")
+
+# 🔗 LINK
+@app.route('/link', methods=['GET','POST'])
+def link_download():
+    if request.method == 'POST':
+        url = request.form['video_url']
+        duration = int(request.form['duration'])
+
+        temp = os.path.join(UPLOAD_FOLDER, "temp.mp4")
+
+        subprocess.run(["wget", url, "-O", temp])
+
+        cut_video(temp, duration)
+
+        return redirect(url_for('history_page'))
+
+    return render_template("link_download.html")
+
+# 📥 DESCARGA
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
