@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Vídeos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container">
+        <h1>Historial de Vídeos Cortados</h1>
+        {% if videos %}
+            <ul>
+            {% for video in videos %}
+                <li>{{ video }}</li>
+            {% endfor %}
+            </ul>
+            <form method="post" action="/clear_history">
+                <button class="btn-danger">Borrar Historial</button>
+            </form>
+        {% else %}
+            <p>No hay historial disponible.</p>
+        {% endif %}
+    </div>
+
+    {% include 'components/footer.html' %}
+</body>
+</html>
