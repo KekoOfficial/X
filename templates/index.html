@@ -2,41 +2,51 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Khasam Cutter PRO</title>
+<title>Cortador de Vídeos Khasam</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<h1>🎬 Khasam Cutter PRO</h1>
+<h1>🎬 Cortador de Vídeos Khasam</h1>
 
-<form method="post" enctype="multipart/form-data">
+<form id="formCortar" method="post" enctype="multipart/form-data">
+    <label>Nombre de la carpeta 📁:</label>
+    <input type="text" name="folder_name" placeholder="Ej: MisVideos" required>
+
+    <label>Selecciona vídeos (MP4):</label>
     <input type="file" name="files" multiple required>
 
-    <label>Duración por clip:</label>
-    <select name="duration">
-        <option value="15">15 segundos</option>
-        <option value="30">30 segundos</option>
-        <option value="60">60 segundos</option>
+    <label>Duración del capítulo (segundos):</label>
+    <select name="cap_duration">
+        <option value="15">15s</option>
+        <option value="30">30s</option>
+        <option value="60">60s</option>
     </select>
 
-    <button type="submit">🚀 CREAR VIDEOS</button>
+    <label>Crear automático (capítulos):</label>
+    <input type="number" name="auto_caps" min="1" placeholder="Ej: 5, 10, 20...">
+
+    <button type="submit">▶ Crear Capítulos</button>
 </form>
 
-<h2>📂 Videos generados:</h2>
-<ul>
-{% for video in videos %}
-<li><a href="/download/{{video}}">{{video}}</a></li>
-{% endfor %}
-</ul>
+<div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
 
+<section>
 <h2>🕒 Historial</h2>
-<ul>
+<button id="btnClearHist" class="clear-btn">🗑 Borrar Historial</button>
+<button id="btnClearFolder" class="clear-btn">📁 Clear Carpeta</button>
+
+<ul id="historialList">
 {% for item in historial %}
 <li>
 🎥 {{item.video}} | ⏱ {{item.duracion}}s | 🎬 {{item.clips}} clips | 📅 {{item.fecha}}
 </li>
 {% endfor %}
 </ul>
+</section>
 
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
