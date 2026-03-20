@@ -2,15 +2,23 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Khasam Auto Cutter</title>
+<title>Khasam Cutter PRO</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<h1>🎬 Cortador Automático (15s)</h1>
+<h1>🎬 Cortador PRO</h1>
 
 <form method="post" enctype="multipart/form-data">
     <input type="file" name="files" multiple required>
+
+    <label>Duración por clip:</label>
+    <select name="duration">
+        <option value="15">15 segundos</option>
+        <option value="30">30 segundos</option>
+        <option value="60">60 segundos</option>
+    </select>
+
     <button type="submit">Cortar Automáticamente</button>
 </form>
 
