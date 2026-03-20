@@ -3,6 +3,7 @@ const fileInput = document.getElementById("file");
 const capDuration = document.getElementById("cap_duration");
 const progressFill = document.getElementById("progress_fill");
 const progressText = document.getElementById("progress_text");
+const progressStatus = document.getElementById("progress_status");
 const histList = document.getElementById("hist_list");
 
 async function loadHist() {
@@ -24,14 +25,23 @@ cutBtn.onclick = async () => {
 
     progressFill.style.width = "0%";
     progressText.textContent = "0%";
+    progressStatus.textContent = "";
 
-    const res = await fetch("/cut", {method:"POST", body:fd});
-    const data = await res.json();
-    if(data.success){
-        progressFill.style.width = "100%";
-        progressText.textContent = `100% - ${data.num_caps} capítulos creados`;
-        loadHist();
-    }
+    await fetch("/cut", {method:"POST", body:fd});
+
+    // Polling para progreso
+    const interval = setInterval(async ()=>{
+        const res = await fetch("/progress");
+        const data = await res.json();
+        progressFill.style.width = data.percent + "%";
+        progressText.textContent = data.percent + "%";
+        progressStatus.textContent = data.status;
+
+        if(data.status === "Listo"){
+            clearInterval(interval);
+            loadHist();
+        }
+    }, 500);
 };
 
 document.getElementById("clear_hist").onclick = async () => {
