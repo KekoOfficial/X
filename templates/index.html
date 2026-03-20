@@ -1,26 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cortador de Vídeos Khasam</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Video Cutter Khasam</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>🎬 Cortador de Vídeos Khasam</h1>
-    <form method="post" enctype="multipart/form-data">
-        <label>Selecciona vídeos (MP4):</label>
-        <input type="file" name="files" multiple required><br><br>
-        <label>Número de capítulos:</label>
-        <input type="number" name="chapters" min="1" placeholder="Ej: 5, 10"><br><br>
-        <button type="submit">Cortar Vídeos</button>
-    </form>
+    <div class="container">
+        <h1>Video Cutter Khasam</h1>
+        <input type="file" id="videoInput" accept="video/*">
+        <select id="chapterDuration">
+            {% for c in chapter_options %}
+            <option value="{{c}}">{{c}}s por capítulo</option>
+            {% endfor %}
+        </select>
+        <button id="uploadBtn">Subir</button>
+        <button id="cutBtn">Cortar</button>
+        <button id="clearBtn">Limpiar Descargas</button>
 
-    <h2>Vídeos cortados:</h2>
-    <ul>
-        {% for video in videos %}
-        <li><a href="{{ url_for('download', filename=video) }}">{{ video }}</a></li>
-        {% endfor %}
-    </ul>
+        <div class="progress">
+            <div id="progressBar"></div>
+        </div>
+
+        <div id="downloads"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
 </body>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
 </html>
