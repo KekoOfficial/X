@@ -11,7 +11,7 @@ OUTPUT_FOLDER = os.path.join(UPLOAD_FOLDER, "Cortados")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-# 🔥 Obtener duración del video automáticamente
+# Obtener duración
 def get_duration(file):
     result = subprocess.run([
         "ffprobe", "-v", "quiet",
@@ -27,6 +27,7 @@ def get_duration(file):
 def index():
     if request.method == "POST":
         files = request.files.getlist("files")
+        segment_time = int(request.form.get("duration", 15))  # 🔥 duración elegida
 
         count = len([f for f in os.listdir(OUTPUT_FOLDER) if f.endswith(".mp4")])
 
@@ -36,26 +37,25 @@ def index():
                 filepath = os.path.join(UPLOAD_FOLDER, filename)
                 file.save(filepath)
 
-                # 🔥 duración del video
                 duration = get_duration(filepath)
 
-                # 🔥 calcular capítulos automáticamente
-                chapters = int(duration // 15)
+                # 🔥 calcular cuántos clips
+                total_parts = int(duration // segment_time)
 
-                print(f"Video duración: {duration}s → capítulos: {chapters}")
+                print(f"Duración: {duration}s | Segmento: {segment_time}s | Clips: {total_parts}")
 
-                for i in range(chapters):
-                    start = i * 15
+                for i in range(total_parts):
+                    start = i * segment_time
 
                     count += 1
-                    output_name = f"video_{count}_cap{i+1}.mp4"
+                    output_name = f"video_{count}_part{i+1}.mp4"
                     output_path = os.path.join(OUTPUT_FOLDER, output_name)
 
                     subprocess.run([
                         "ffmpeg",
                         "-ss", str(start),
                         "-i", filepath,
-                        "-t", "15",
+                        "-t", str(segment_time),
                         "-c", "copy",
                         output_path
                     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -74,5 +74,5 @@ def download(filename):
 
 
 if __name__ == "__main__":
-    print("🔥 Servidor automático activo en http://127.0.0.1:5000")
+    print("🔥 Khasam Cutter PRO activo en http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000)
