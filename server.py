@@ -1,108 +1,105 @@
-# server.py
-from flask import Flask, render_template, request, redirect, url_for
-import os
-import subprocess
-import urllib.request
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+import os, subprocess, math, threading, datetime
 
 app = Flask(__name__)
 
-# Carpeta para uploads temporales
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+UPLOAD = "uploads"
+TEMP = "temp"
+GALLERY = "/storage/emulated/0/Movies/MallyCuts"
 
-# Carpeta para logs
-LOG_FOLDER = 'logs'
-os.makedirs(LOG_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD, exist_ok=True)
+os.makedirs(TEMP, exist_ok=True)
+os.makedirs(GALLERY, exist_ok=True)
 
-# Carpeta de vídeos cortados en galería
-GALLERY_FOLDER = '/storage/emulated/0/Movies/MallyCuts'
-os.makedirs(GALLERY_FOLDER, exist_ok=True)
-
-# Historial de vídeos cortados
 history = []
+tasks = {}
 
-# Función para cortar vídeo usando FFmpeg
-def cut_video_ffmpeg(input_path, chapters, duration):
-    output_files = []
-    for i in range(chapters):
-        start_time = i * duration
-        filename_base = os.path.splitext(os.path.basename(input_path))[0]
-        output_filename = f"{filename_base}_part{i+1}.mp4"
-        output_path = os.path.join(GALLERY_FOLDER, output_filename)
-        
+# 🔥 Obtener duración real
+def get_duration(path):
+    result = subprocess.run([
+        "ffprobe","-v","error",
+        "-show_entries","format=duration",
+        "-of","default=noprint_wrappers=1:nokey=1",
+        path
+    ], stdout=subprocess.PIPE)
+    return float(result.stdout)
+
+# 🚀 PROCESO DIOS
+def process_video(task_id, path, duration):
+    total = get_duration(path)
+    parts = math.ceil(total / duration)
+
+    name = os.path.splitext(os.path.basename(path))[0]
+    folder = os.path.join(GALLERY, name)
+    os.makedirs(folder, exist_ok=True)
+
+    for i in range(parts):
+        start = i * duration
+
+        output = os.path.join(folder, f"{name} #{i+1}.mp4")
+
         cmd = [
-            'ffmpeg', '-y', '-i', input_path,
-            '-ss', str(start_time),
-            '-t', str(duration),
-            '-c', 'copy',
-            output_path
+            "ffmpeg","-y",
+            "-ss", str(start),
+            "-i", path,
+            "-t", str(duration),
+            "-c","copy",
+            output
         ]
-        
-        try:
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            output_files.append(output_filename)
-        except subprocess.CalledProcessError:
-            with open(os.path.join(LOG_FOLDER, 'errors.log'), 'a') as f:
-                f.write(f"Error cortando {input_path} capítulo {i+1}\n")
-    return output_files
 
-# Ruta principal
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        tasks[task_id]["progress"] = int(((i+1)/parts)*100)
+
+    tasks[task_id]["status"] = "done"
+
+    history.append({
+        "name": name,
+        "clips": parts,
+        "date": str(datetime.datetime.now())
+    })
+
+# 🏠 HOME
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return render_template("index.html")
 
-# Historial de vídeos cortados
-@app.route('/history', methods=['GET', 'POST'])
+# 📁 SUBIR
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    duration = int(request.form['duration'])
+
+    path = os.path.join(UPLOAD, file.filename)
+    file.save(path)
+
+    task_id = str(len(tasks)+1)
+
+    tasks[task_id] = {
+        "progress": 0,
+        "status": "processing"
+    }
+
+    threading.Thread(target=process_video, args=(task_id, path, duration)).start()
+
+    return jsonify({"task_id": task_id})
+
+# 📊 PROGRESO POR TAREA
+@app.route('/progress/<task_id>')
+def progress(task_id):
+    return jsonify(tasks.get(task_id, {}))
+
+# 📜 HISTORIAL
+@app.route('/history')
 def history_page():
-    global history
-    if request.method == 'POST':
-        history = []
-        return redirect(url_for('history_page'))
-    return render_template('history.html', videos=history)
+    return render_template("history.html", history=history)
 
-# Descargar vídeo desde link
-@app.route('/link_download', methods=['GET', 'POST'])
-def link_download():
+# 🧹 LIMPIAR HISTORIAL
+@app.route('/clear')
+def clear():
     global history
-    if request.method == 'POST':
-        video_url = request.form['video_url']
-        chapters = int(request.form['chapters'])
-        duration = int(request.form['duration'])
-        temp_path = os.path.join(UPLOAD_FOLDER, 'temp_video.mp4')
-        
-        # Descargar vídeo
-        try:
-            urllib.request.urlretrieve(video_url, temp_path)
-        except Exception as e:
-            with open(os.path.join(LOG_FOLDER, 'errors.log'), 'a') as f:
-                f.write(f"Error descargando {video_url}: {str(e)}\n")
-            return "Error descargando el vídeo"
-        
-        # Cortar vídeo
-        files = cut_video_ffmpeg(temp_path, chapters, duration)
-        history.append(f"Vídeo de {video_url} cortado en {chapters} capítulos de {duration}s")
-        return redirect(url_for('history_page'))
-    
-    return render_template('link_download.html')
+    history = []
+    return redirect(url_for('history_page'))
 
-# Subir archivo y cortar
-@app.route('/upload_file', methods=['GET', 'POST'])
-def upload_file():
-    global history
-    if request.method == 'POST':
-        file = request.files['video_file']
-        chapters = int(request.form['chapters'])
-        duration = int(request.form['duration'])
-        if file:
-            filename = file.filename
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(filepath)
-            
-            # Cortar vídeo
-            cut_video_ffmpeg(filepath, chapters, duration)
-            history.append(f"Archivo {filename} cortado en {chapters} capítulos de {duration}s")
-            return redirect(url_for('history_page'))
-    return render_template('upload_file.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
