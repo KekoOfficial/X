@@ -1,57 +1,52 @@
-const cutBtn = document.getElementById("cut_btn");
-const fileInput = document.getElementById("file");
-const capDuration = document.getElementById("cap_duration");
+const btnCortar = document.getElementById("btn_cortar");
+const videosInput = document.getElementById("videos");
+const capSelect = document.getElementById("cap_duration");
 const progressFill = document.getElementById("progress_fill");
 const progressText = document.getElementById("progress_text");
-const progressStatus = document.getElementById("progress_status");
-const histList = document.getElementById("hist_list");
+const videoList = document.getElementById("video_list");
+const clearHistoryBtn = document.getElementById("clear_history");
+const clearFolderBtn = document.getElementById("clear_folder");
 
-async function loadHist() {
-    const res = await fetch("/get_hist");
-    const data = await res.json();
-    histList.innerHTML = "";
-    data.hist.forEach(line => {
-        const li = document.createElement("li");
-        li.textContent = line.trim();
-        histList.appendChild(li);
+btnCortar.addEventListener("click", () => {
+    const files = videosInput.files;
+    if(files.length === 0) return alert("Selecciona al menos un vídeo");
+    
+    const formData = new FormData();
+    for(let f of files) formData.append("files", f);
+    formData.append("cap_duration", capSelect.value);
+
+    fetch("/upload", {method:"POST", body: formData})
+    .then(res => res.json())
+    .then(data => {
+        alert("Vídeos cortados correctamente!");
+        refreshList();
+    });
+
+    // Iniciar barra de progreso
+    const interval = setInterval(() => {
+        fetch("/progress").then(r=>r.json()).then(p=>{
+            const percent = Math.round((p.done/p.total)*100) || 0;
+            progressFill.style.width = percent + "%";
+            progressText.textContent = p.status + ` (${percent}%)`;
+            if(p.status === "Listo") clearInterval(interval);
+        });
+    }, 500);
+});
+
+function refreshList(){
+    fetch("/").then(r=>r.text()).then(html=>{
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html,"text/html");
+        const items = doc.querySelectorAll("#video_list li");
+        videoList.innerHTML = "";
+        items.forEach(i=>videoList.appendChild(i));
     });
 }
 
-cutBtn.onclick = async () => {
-    if(!fileInput.files[0]) return alert("Selecciona un vídeo");
-    const fd = new FormData();
-    fd.append("file", fileInput.files[0]);
-    fd.append("cap_duration", capDuration.value);
+clearHistoryBtn.addEventListener("click", ()=>{
+    fetch("/clear_history").then(()=>refreshList());
+});
 
-    progressFill.style.width = "0%";
-    progressText.textContent = "0%";
-    progressStatus.textContent = "";
-
-    await fetch("/cut", {method:"POST", body:fd});
-
-    // Polling para progreso
-    const interval = setInterval(async ()=>{
-        const res = await fetch("/progress");
-        const data = await res.json();
-        progressFill.style.width = data.percent + "%";
-        progressText.textContent = data.percent + "%";
-        progressStatus.textContent = data.status;
-
-        if(data.status === "Listo"){
-            clearInterval(interval);
-            loadHist();
-        }
-    }, 500);
-};
-
-document.getElementById("clear_hist").onclick = async () => {
-    await fetch("/clear_hist");
-    loadHist();
-};
-
-document.getElementById("clear_folder").onclick = async () => {
-    await fetch("/clear_folder");
-    loadHist();
-};
-
-loadHist();
+clearFolderBtn.addEventListener("click", ()=>{
+    fetch("/clear_folder").then(()=>refreshList());
+});
