@@ -3,50 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <title>Cortador de Vídeos Khasam</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<div class="container">
+    <h1>🎬 Cortador de Vídeos Khasam</h1>
 
-<h1>🎬 Cortador de Vídeos Khasam</h1>
+    <div class="form-section">
+        <label>Selecciona vídeo (MP4):</label>
+        <input type="file" id="file">
+        
+        <label>Duración de capítulo (segundos):</label>
+        <select id="cap_duration">
+            <option value="15">15s</option>
+            <option value="30">30s</option>
+            <option value="60">60s</option>
+        </select>
 
-<form id="formCortar" method="post" enctype="multipart/form-data">
-    <label>Nombre de la carpeta 📁:</label>
-    <input type="text" name="folder_name" placeholder="Ej: MisVideos" required>
+        <label>Número de capítulos:</label>
+        <input type="number" id="num_caps" min="1" placeholder="Ej: 5, 10, 20">
 
-    <label>Selecciona vídeos (MP4):</label>
-    <input type="file" name="files" multiple required>
+        <button id="cut_btn">Crear Capítulos</button>
+    </div>
 
-    <label>Duración del capítulo (segundos):</label>
-    <select name="cap_duration">
-        <option value="15">15s</option>
-        <option value="30">30s</option>
-        <option value="60">60s</option>
-    </select>
+    <div class="progress-section">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress_fill"></div>
+        </div>
+        <p id="progress_text">0%</p>
+    </div>
 
-    <label>Crear automático (capítulos):</label>
-    <input type="number" name="auto_caps" min="1" placeholder="Ej: 5, 10, 20...">
+    <div class="historial-section">
+        <h2>Historial</h2>
+        <button id="clear_hist">Clear Historial</button>
+        <button id="clear_folder">Clear Carpeta</button>
+        <ul id="hist_list"></ul>
+    </div>
 
-    <button type="submit">▶ Crear Capítulos</button>
-</form>
-
-<div class="progress-container">
-    <div class="progress-bar" id="progressBar"></div>
 </div>
-
-<section>
-<h2>🕒 Historial</h2>
-<button id="btnClearHist" class="clear-btn">🗑 Borrar Historial</button>
-<button id="btnClearFolder" class="clear-btn">📁 Clear Carpeta</button>
-
-<ul id="historialList">
-{% for item in historial %}
-<li>
-🎥 {{item.video}} | ⏱ {{item.duracion}}s | 🎬 {{item.clips}} clips | 📅 {{item.fecha}}
-</li>
-{% endfor %}
-</ul>
-</section>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script src="/static/script.js"></script>
 </body>
 </html>
