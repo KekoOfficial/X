@@ -1,117 +1,99 @@
-/* Reset básico */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+* {margin:0;padding:0;box-sizing:border-box;}
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #121212;
-    color: #e0e0e0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:#121212;
+    color:#e0e0e0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:30px;
 }
-
-/* Título principal */
 h1 {
-    color: #00ffff;
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px #00ffff;
+    color:#00ffff;
+    font-size:2.5rem;
+    margin-bottom:20px;
+    text-shadow:0 0 10px #00ffff;
 }
-
-/* Formularios */
 form {
-    background: #1e1e1e;
-    padding: 25px;
-    border-radius: 15px;
-    width: 350px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    background:#1e1e1e;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 0 20px rgba(0,255,255,0.2);
+    display:flex;
+    flex-direction:column;
+    gap:15px;
 }
-
-input[type="file"], select {
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    background: #2a2a2a;
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
+input[type="file"], select, input[type="number"] {
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    background:#2a2a2a;
+    color:#fff;
+    font-size:1rem;
+    cursor:pointer;
 }
-
-select {
-    cursor: pointer;
-}
-
-/* Botón elegante */
 button {
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(45deg, #00ffff, #00ff99);
-    color: #000;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    background:linear-gradient(45deg,#00ffff,#00ff99);
+    color:#000;
+    font-weight:bold;
+    font-size:1rem;
+    cursor:pointer;
     transition: all 0.3s ease;
 }
-
 button:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px #00ffff, 0 0 30px #00ff99;
+    box-shadow: 0 0 15px #00ffff,0 0 30px #00ff99;
 }
-
-/* Secciones de videos e historial */
-h2 {
-    margin-top: 30px;
-    margin-bottom: 10px;
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff;
+.progress-container {
+    background:#2a2a2a;
+    border-radius:10px;
+    width:100%;
+    height:20px;
+    overflow:hidden;
+    margin-top:10px;
 }
-
-ul {
-    list-style: none;
-    width: 90%;
-    max-width: 500px;
+.progress-bar {
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#00ffff,#00ff99);
+    transition:width 0.3s ease;
 }
-
+section {
+    margin-top:30px;
+    width:90%;
+    max-width:500px;
+}
+h2 {color:#00ffff; margin-bottom:10px; text-shadow:0 0 5px #00ffff;}
+ul {list-style:none;}
 ul li {
-    background: #1e1e1e;
-    margin-bottom: 10px;
-    padding: 10px 15px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
+    background:#1e1e1e;
+    margin-bottom:10px;
+    padding:10px 15px;
+    border-radius:10px;
+    transition:all 0.2s ease;
 }
-
 ul li:hover {
-    background: #272727;
-    box-shadow: 0 0 10px #00ffff;
+    background:#272727;
+    box-shadow:0 0 10px #00ffff;
 }
-
-/* Enlaces de videos */
-a {
-    color: #00ffff;
-    text-decoration: none;
-    word-break: break-word;
+a {color:#00ffff;text-decoration:none; word-break:break-word;}
+a:hover{text-decoration:underline;}
+.clear-btn {
+    background:#ff4d4d;
+    color:#000;
+    padding:8px 15px;
+    border-radius:8px;
+    border:none;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:0.3s;
 }
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 400px) {
-    form {
-        width: 90%;
-        padding: 20px;
-    }
-    h1 {
-        font-size: 2rem;
-    }
+.clear-btn:hover {box-shadow:0 0 15px #ff4d4d; transform:scale(1.05);}
+@media(max-width:400px){
+    form {width:90%; padding:20px;}
+    h1 {font-size:2rem;}
 }
