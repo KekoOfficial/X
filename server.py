@@ -1,9 +1,9 @@
-from flask import Flask, request, send_from_directory, jsonify
+from flask import Flask, request, render_template, send_from_directory, jsonify
 import os, subprocess, math
 
 app = Flask(__name__)
 
-# Carpetas de subida y salida
+# Carpetas
 UPLOAD_FOLDER = "/storage/emulated/0/Download/VideosServer"
 OUTPUT_FOLDER = "/storage/emulated/0/Download/CortadosKhasam"
 HISTORIAL_FILE = os.path.join(OUTPUT_FOLDER, "historial_cortes.txt")
@@ -42,8 +42,7 @@ def cortar_video(filepath, cap_duration):
         start += cap_duration
         progress["done"] += 1
 
-    # Actualizar galería en Termux (si estás usando Android)
-    subprocess.run(["termux-media-scan", OUTPUT_FOLDER])
+    subprocess.run(["termux-media-scan", OUTPUT_FOLDER])  # Solo Android
 
     # Guardar historial
     with open(HISTORIAL_FILE, "a") as f:
@@ -52,6 +51,11 @@ def cortar_video(filepath, cap_duration):
 
     progress["status"] = "Listo"
     return cortados
+
+@app.route("/", methods=["GET"])
+def index():
+    videos = [f for f in os.listdir(OUTPUT_FOLDER) if f.endswith(".mp4")]
+    return render_template("index.html", videos=videos)
 
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -77,6 +81,13 @@ def get_progress():
 @app.route("/clear_history")
 def clear_history():
     open(HISTORIAL_FILE,"w").close()
+    return jsonify({"status":"ok"})
+
+@app.route("/clear_folder")
+def clear_folder():
+    for f in os.listdir(OUTPUT_FOLDER):
+        if f.endswith(".mp4"):
+            os.remove(os.path.join(OUTPUT_FOLDER, f))
     return jsonify({"status":"ok"})
 
 if __name__=="__main__":
