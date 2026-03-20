@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import os
-from datetime import datetime
-from moviepy.editor import VideoFileClip
+import subprocess
+import math
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Para flash messages
 
 # Carpetas
 UPLOAD_FOLDER = 'uploads'
@@ -12,30 +11,30 @@ DOWNLOAD_FOLDER = 'Downloads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# Historial de vídeos cortados
+# Historial simple en memoria
 history = []
 
-# Función para cortar vídeo en capítulos
-def cut_video(filepath, chapters, duration_per_chapter):
+# Función para cortar vídeos usando ffmpeg
+def cut_video_ffmpeg(filepath, chapters, duration):
     filename = os.path.basename(filepath)
     name, ext = os.path.splitext(filename)
-    clip = VideoFileClip(filepath)
-    total_duration = int(clip.duration)
     output_files = []
 
-    # Cortar vídeo en capítulos
-    start = 0
-    chapter_num = 1
-    while start < total_duration and chapter_num <= chapters:
-        end = min(start + duration_per_chapter, total_duration)
-        output_filename = f"{name}_chapter{chapter_num}{ext}"
-        output_path = os.path.join(DOWNLOAD_FOLDER, output_filename)
-        clip.subclip(start, end).write_videofile(output_path, codec="libx264", audio_codec="aac", verbose=False, logger=None)
-        output_files.append(output_filename)
-        start += duration_per_chapter
-        chapter_num += 1
-
-    clip.close()
+    for i in range(chapters):
+        start_time = i * duration
+        output_name = f"{name}_chapter{i+1}{ext}"
+        output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
+        # ffmpeg sin re-encode para rapidez
+        subprocess.run([
+            "ffmpeg",
+            "-y",  # Sobrescribir si existe
+            "-i", filepath,
+            "-ss", str(start_time),
+            "-t", str(duration),
+            "-c", "copy",
+            output_path
+        ])
+        output_files.append(output_name)
     return output_files
 
 # Rutas
@@ -48,7 +47,6 @@ def history_page():
     global history
     if request.method == 'POST':
         history = []
-        flash("Historial borrado ✅", "success")
         return redirect(url_for('history_page'))
     return render_template('history.html', videos=history)
 
@@ -59,10 +57,12 @@ def link_download():
         video_url = request.form['video_url']
         chapters = int(request.form['chapters'])
         duration = int(request.form['duration'])
-        # Aquí se puede agregar descarga con yt_dlp si quieres
-        # Por ahora se simula que se corta
-        history.append(f"[LINK] Vídeo {video_url} cortado en {chapters} capítulos de {duration}s")
-        flash(f"Vídeo de link procesado ✅", "success")
+        # Aquí podrías usar yt-dlp o youtube-dl para descargar el vídeo primero
+        # Por ahora simulamos
+        fake_file = os.path.join(UPLOAD_FOLDER, "temp_video.mp4")
+        open(fake_file, "a").close()  # Archivo vacío de prueba
+        output_files = cut_video_ffmpeg(fake_file, chapters, duration)
+        history.append(f"Vídeo de {video_url} cortado: {', '.join(output_files)}")
         return redirect(url_for('history_page'))
     return render_template('link_download.html')
 
@@ -74,22 +74,16 @@ def upload_file():
         chapters = int(request.form['chapters'])
         duration = int(request.form['duration'])
         if file:
-            filename = file.filename
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
-            # Cortar vídeo usando MoviePy
-            try:
-                output_files = cut_video(filepath, chapters, duration)
-                history.append(f"[UPLOAD] {filename} cortado en {chapters} capítulos de {duration}s")
-                flash(f"Archivo {filename} cortado correctamente ✅", "success")
-            except Exception as e:
-                flash(f"Error al cortar el vídeo: {e}", "danger")
+            output_files = cut_video_ffmpeg(filepath, chapters, duration)
+            history.append(f"Archivo {file.filename} cortado: {', '.join(output_files)}")
             return redirect(url_for('history_page'))
     return render_template('upload_file.html')
 
 @app.route('/downloads/<filename>')
 def download_file(filename):
-    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
+    return send_from_directory(DOWNLOAD_FOLDER, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
