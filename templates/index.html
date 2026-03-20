@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Vídeo Cutter</title>
+    <title>App de Vídeos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     {% include 'components/navbar.html' %}
+
     <div class="container">
-        <h1>Sube tu vídeo</h1>
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <label>Capítulos:</label>
-            <input type="number" name="chapters" min="1" value="5">
-            <button type="submit">Cortar Vídeo</button>
-        </form>
+        <h1>Bienvenido a tu App de Vídeos</h1>
+        <p>Elige una opción para cortar tu vídeo:</p>
+        <a class="btn" href="/upload_file">Subir Archivo</a>
+        <a class="btn" href="/link_download">Descargar desde Link</a>
     </div>
+
+    {% include 'components/footer.html' %}
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
