@@ -1,38 +1,46 @@
-function uploadCut(){
-    let files = document.getElementById("local_files").files;
-    let dur = document.getElementById("cap_duration").value;
-    let form = new FormData();
-    for(let i=0;i<files.length;i++) form.append("files", files[i]);
-    form.append("cap_duration", dur);
-    fetch("/upload_cut", {method:"POST", body: form}).then(res=>res.json()).then(data=>{
-        alert(data.message);
-        setTimeout(refreshList,2000);
+function cutVideo() {
+    const url = document.getElementById("url").value;
+    const duration = document.getElementById("duration").value;
+    const chapters = document.getElementById("chapters").value;
+    const progress = document.getElementById("progress");
+
+    progress.innerText = "⏳ Procesando...";
+
+    fetch("/cut", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `url=${encodeURIComponent(url)}&duration=${duration}&chapters=${chapters}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        progress.innerText = "✅ Cortado correctamente!";
+        updateHist();
     });
 }
 
-function urlCut(){
-    let url = document.getElementById("video_url").value;
-    let dur = document.getElementById("cap_duration_url").value;
-    fetch("/url_cut", {method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({url:url, cap_duration: dur})
-    }).then(res=>res.json()).then(data=>{
-        alert(data.message);
-        setTimeout(refreshList,5000);
-    });
+function updateHist() {
+    fetch("/historial")
+        .then(res => res.json())
+        .then(data => {
+            const ul = document.getElementById("historial");
+            ul.innerHTML = "";
+            data.historial.forEach(line => {
+                const li = document.createElement("li");
+                li.innerHTML = line;
+                ul.appendChild(li);
+            });
+        });
 }
 
-function refreshList(){
-    fetch("/").then(res=>res.text()).then(html=>{
-        let parser = new DOMParser();
-        let doc = parser.parseFromString(html,"text/html");
-        document.getElementById("video_list").innerHTML = doc.getElementById("video_list").innerHTML;
-    });
+function clearHist() {
+    fetch("/clear_historial")
+        .then(() => updateHist());
 }
 
-function clearFolder(){
-    fetch("/clear_folder",{method:"POST"}).then(res=>res.json()).then(data=>{
-        alert("Carpeta y historial limpiados!");
-        refreshList();
-    });
+function clearFolder() {
+    fetch("/clear_folder")
+        .then(() => updateHist());
 }
+
+// Actualizar historial al cargar la página
+updateHist();
