@@ -8,10 +8,9 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "/storage/emulated/0/Download/VideosServer"
 OUTPUT_FOLDER = os.path.join(UPLOAD_FOLDER, "Cortados")
 HISTORIAL_FILE = os.path.join(OUTPUT_FOLDER, "historial_cortes.txt")
-
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
     videos = [f for f in os.listdir(OUTPUT_FOLDER) if f.endswith(".mp4")]
     return render_template("index.html", videos=videos)
@@ -19,24 +18,22 @@ def index():
 @app.route("/cut", methods=["POST"])
 def cut_video():
     file = request.files["file"]
-    num_caps = int(request.form.get("num_caps", 5))
-    cap_duration = int(request.form.get("cap_duration", 15))
+    cap_duration = int(request.form.get("cap_duration", 15))  # Duración por capítulo
 
     filename = file.filename
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     file.save(filepath)
 
-    # Obtener duración total
+    # Obtener duración total del vídeo
     result = subprocess.run(["ffprobe","-v","error","-show_entries",
                              "format=duration","-of",
                              "default=noprint_wrappers=1:nokey=1", filepath],
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     total_duration = float(result.stdout)
 
-    # Ajustar cap_duration si es mayor al total
-    if num_caps * cap_duration > total_duration:
-        cap_duration = total_duration / num_caps
+    # Calcular número de capítulos automáticamente
+    num_caps = math.ceil(total_duration / cap_duration)
 
     # Cortar vídeos
     start = 0
@@ -54,7 +51,7 @@ def cut_video():
         for c in cortados:
             f.write(f"{filename} -> {c}\n")
 
-    return jsonify({"success": True, "videos": cortados})
+    return jsonify({"success": True, "videos": cortados, "num_caps": num_caps})
 
 @app.route("/download/<filename>")
 def download(filename):
