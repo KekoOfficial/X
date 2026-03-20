@@ -1,33 +1,35 @@
 # server.py
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for
 import os
 import subprocess
-import yt_dlp
-from datetime import datetime
+import urllib.request
 
 app = Flask(__name__)
 
-# Carpetas necesarias
+# Carpeta para uploads temporales
 UPLOAD_FOLDER = 'uploads'
-DOWNLOAD_FOLDER = 'Downloads'
-LOG_FOLDER = 'logs'
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# Carpeta para logs
+LOG_FOLDER = 'logs'
 os.makedirs(LOG_FOLDER, exist_ok=True)
 
-# Historial (temporal, puedes cambiar a base de datos si quieres)
+# Carpeta de vídeos cortados en galería
+GALLERY_FOLDER = '/storage/emulated/0/Movies/MallyCuts'
+os.makedirs(GALLERY_FOLDER, exist_ok=True)
+
+# Historial de vídeos cortados
 history = []
 
-# Función para cortar vídeo con FFmpeg en capítulos exactos
+# Función para cortar vídeo usando FFmpeg
 def cut_video_ffmpeg(input_path, chapters, duration):
     output_files = []
     for i in range(chapters):
         start_time = i * duration
-        output_filename = f"{os.path.splitext(os.path.basename(input_path))[0]}_part{i+1}.mp4"
-        output_path = os.path.join(DOWNLOAD_FOLDER, output_filename)
-
-        # Comando FFmpeg
+        filename_base = os.path.splitext(os.path.basename(input_path))[0]
+        output_filename = f"{filename_base}_part{i+1}.mp4"
+        output_path = os.path.join(GALLERY_FOLDER, output_filename)
+        
         cmd = [
             'ffmpeg', '-y', '-i', input_path,
             '-ss', str(start_time),
@@ -35,7 +37,7 @@ def cut_video_ffmpeg(input_path, chapters, duration):
             '-c', 'copy',
             output_path
         ]
-
+        
         try:
             subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             output_files.append(output_filename)
@@ -49,16 +51,16 @@ def cut_video_ffmpeg(input_path, chapters, duration):
 def index():
     return render_template('index.html')
 
-# Historial
+# Historial de vídeos cortados
 @app.route('/history', methods=['GET', 'POST'])
 def history_page():
     global history
     if request.method == 'POST':
-        history = []  # Borrar historial
+        history = []
         return redirect(url_for('history_page'))
     return render_template('history.html', videos=history)
 
-# Descargar y cortar desde link
+# Descargar vídeo desde link
 @app.route('/link_download', methods=['GET', 'POST'])
 def link_download():
     global history
@@ -66,34 +68,21 @@ def link_download():
         video_url = request.form['video_url']
         chapters = int(request.form['chapters'])
         duration = int(request.form['duration'])
-
-        # Archivo temporal
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        temp_video_path = os.path.join(UPLOAD_FOLDER, f"temp_{timestamp}.mp4")
-
-        # Descargar vídeo real
-        ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
-            'outtmpl': temp_video_path,
-            'quiet': True,
-            'merge_output_format': 'mp4'
-        }
+        temp_path = os.path.join(UPLOAD_FOLDER, 'temp_video.mp4')
+        
+        # Descargar vídeo
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([video_url])
+            urllib.request.urlretrieve(video_url, temp_path)
         except Exception as e:
-            history.append(f"Error descargando {video_url}: {str(e)}")
-            return redirect(url_for('history_page'))
-
+            with open(os.path.join(LOG_FOLDER, 'errors.log'), 'a') as f:
+                f.write(f"Error descargando {video_url}: {str(e)}\n")
+            return "Error descargando el vídeo"
+        
         # Cortar vídeo
-        output_files = cut_video_ffmpeg(temp_video_path, chapters, duration)
-        history.append(f"Vídeo {video_url} cortado: {', '.join(output_files)}")
-
-        # Limpiar temporal
-        if os.path.exists(temp_video_path):
-            os.remove(temp_video_path)
-
+        files = cut_video_ffmpeg(temp_path, chapters, duration)
+        history.append(f"Vídeo de {video_url} cortado en {chapters} capítulos de {duration}s")
         return redirect(url_for('history_page'))
+    
     return render_template('link_download.html')
 
 # Subir archivo y cortar
@@ -108,21 +97,12 @@ def upload_file():
             filename = file.filename
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             file.save(filepath)
-
+            
             # Cortar vídeo
-            output_files = cut_video_ffmpeg(filepath, chapters, duration)
-            history.append(f"Archivo {filename} cortado: {', '.join(output_files)}")
-
-            # Opcional: borrar archivo subido después de cortar
-            os.remove(filepath)
-
+            cut_video_ffmpeg(filepath, chapters, duration)
+            history.append(f"Archivo {filename} cortado en {chapters} capítulos de {duration}s")
             return redirect(url_for('history_page'))
     return render_template('upload_file.html')
 
-# Descargar capítulo específico
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
-
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)
