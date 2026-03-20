@@ -1,26 +1,49 @@
-const btnClearHist = document.getElementById("btnClearHist");
-const btnClearFolder = document.getElementById("btnClearFolder");
-const progressBar = document.getElementById("progressBar");
-const form = document.getElementById("formCortar");
+const cutBtn = document.getElementById("cut_btn");
+const fileInput = document.getElementById("file");
+const capDuration = document.getElementById("cap_duration");
+const numCaps = document.getElementById("num_caps");
+const progressFill = document.getElementById("progress_fill");
+const progressText = document.getElementById("progress_text");
+const histList = document.getElementById("hist_list");
 
-btnClearHist.onclick = () => {
-    if(confirm("⚠️ Seguro quieres borrar todo el historial?")) {
-        window.location.href="/borrar_historial";
+async function loadHist() {
+    const res = await fetch("/get_hist");
+    const data = await res.json();
+    histList.innerHTML = "";
+    data.hist.forEach(line => {
+        const li = document.createElement("li");
+        li.textContent = line.trim();
+        histList.appendChild(li);
+    });
+}
+
+cutBtn.onclick = async () => {
+    if(!fileInput.files[0]) return alert("Selecciona un vídeo");
+    const fd = new FormData();
+    fd.append("file", fileInput.files[0]);
+    fd.append("cap_duration", capDuration.value);
+    fd.append("num_caps", numCaps.value);
+
+    progressFill.style.width = "0%";
+    progressText.textContent = "0%";
+
+    const res = await fetch("/cut", {method:"POST", body:fd});
+    const data = await res.json();
+    if(data.success){
+        progressFill.style.width = "100%";
+        progressText.textContent = "100%";
+        loadHist();
     }
 };
-btnClearFolder.onclick = () => {
-    if(confirm("⚠️ Seguro quieres borrar toda la carpeta de cortados?")) {
-        window.location.href="/borrar_carpeta";
-    }
+
+document.getElementById("clear_hist").onclick = async () => {
+    await fetch("/clear_hist");
+    loadHist();
 };
 
-// Barra de progreso (demo)
-form.onsubmit = () => {
-    progressBar.style.width = "0%";
-    let percent = 0;
-    const interval = setInterval(() => {
-        percent += 5;
-        progressBar.style.width = percent + "%";
-        if(percent>=100) clearInterval(interval);
-    }, 200);
+document.getElementById("clear_folder").onclick = async () => {
+    await fetch("/clear_folder");
+    loadHist();
 };
+
+loadHist();
