@@ -1,11 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - Khasam Video Cutter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
 {% include 'components/navbar.html' %}
 
-<h1>Mally Cutter PRO</h1>
-
-<div class="menu">
-    <a href="/upload">📁 Subir Video</a>
-    <a href="/link">🔗 Descargar Link</a>
-    <a href="/history">📜 Historial</a>
+<div class="container">
+    <h1>Bienvenido a Khasam Video Cutter</h1>
+    <p>Selecciona si deseas cortar un vídeo por link o por archivo:</p>
+    <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+        <a href="{{ url_for('link_download') }}"><button>Descargar por Link</button></a>
+        <a href="{{ url_for('upload_file') }}"><button>Subir Archivo</button></a>
+    </div>
 </div>
 
 {% include 'components/footer.html' %}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
