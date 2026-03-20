@@ -2,41 +2,23 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Khasam Cutter PRO</title>
+<title>Khasam Auto Cutter</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<h1>🎬 Cortador Automático 15s</h1>
+<h1>🎬 Cortador Automático (15s)</h1>
 
 <form method="post" enctype="multipart/form-data">
     <input type="file" name="files" multiple required>
-
-    <label>Capítulos (cada uno 15s):</label>
-    <select name="chapters">
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-        <option>10</option>
-        <option>20</option>
-        <option>50</option>
-        <option>100</option>
-        <option>200</option>
-        <option>300</option>
-    </select>
-
-    <button type="submit">Cortar Videos</button>
+    <button type="submit">Cortar Automáticamente</button>
 </form>
 
 <h2>📂 Videos generados:</h2>
 
 <ul>
 {% for video in videos %}
-<li>
-    <a href="/download/{{video}}">{{video}}</a>
-</li>
+<li><a href="/download/{{video}}">{{video}}</a></li>
 {% endfor %}
 </ul>
 
