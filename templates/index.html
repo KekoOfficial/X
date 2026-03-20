@@ -2,29 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Video Cutter Khasam</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Vídeo Cutter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    {% include 'components/navbar.html' %}
     <div class="container">
-        <h1>Video Cutter Khasam</h1>
-        <input type="file" id="videoInput" accept="video/*">
-        <select id="chapterDuration">
-            {% for c in chapter_options %}
-            <option value="{{c}}">{{c}}s por capítulo</option>
-            {% endfor %}
-        </select>
-        <button id="uploadBtn">Subir</button>
-        <button id="cutBtn">Cortar</button>
-        <button id="clearBtn">Limpiar Descargas</button>
-
-        <div class="progress">
-            <div id="progressBar"></div>
-        </div>
-
-        <div id="downloads"></div>
+        <h1>Sube tu vídeo</h1>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <label>Capítulos:</label>
+            <input type="number" name="chapters" min="1" value="5">
+            <button type="submit">Cortar Vídeo</button>
+        </form>
     </div>
-
-    <script src="/static/script.js"></script>
 </body>
 </html>
