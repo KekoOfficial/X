@@ -1,28 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Subir Archivo</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+    <label>Selecciona un video:</label>
+    <input type="file" name="video_file" required>
 
-{% include 'components/navbar.html' %}
+    <label>Duración de cada capítulo (segundos):</label>
+    <input type="number" name="duration" value="60" required>
 
-<div class="container">
-    <h2>Subir Archivo para Cortar</h2>
-    <form id="fileForm" method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
-        <input type="file" name="video_file" accept="video/*" required>
-        <input type="number" name="chapters" placeholder="Número de capítulos" min="1" required>
-        <input type="number" name="duration" placeholder="Duración por capítulo (s)" min="1" required>
-        <input type="submit" value="Cortar Video">
-    </form>
-    <div class="progress-container">
-        <div class="progress-bar">0%</div>
-    </div>
-</div>
-
-{% include 'components/footer.html' %}
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+    <button type="submit">Subir y Cortar Automáticamente</button>
+</form>
