@@ -1,21 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import os, subprocess, math, datetime
-from config import *
+
+# 🔥 Carpetas de trabajo
+UPLOAD_FOLDER = "./uploads"
+DOWNLOAD_FOLDER = "./downloads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# 📜 Historial de videos procesados
+history = []
 
 app = Flask(__name__)
 
-# 🔥 Crear carpetas automáticamente
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-os.makedirs(LOG_FOLDER, exist_ok=True)
-os.makedirs(GALLERY_FOLDER, exist_ok=True)
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-history = []
-
-# 🎯 Obtener duración real del video
+# 🎯 Obtener duración del video en segundos
 def get_duration(path):
-    """Obtiene duración del video en segundos"""
     result = subprocess.run([
         "ffprobe","-v","error",
         "-show_entries","format=duration",
@@ -38,25 +36,22 @@ def fix_mp4(path):
     ])
     return fixed
 
-# 🚀 Corte automático perfecto
+# 🚀 Corte automático por capítulos
 def cut_video(path, duration):
     total = get_duration(path)
     if total == 0:
-        print("❌ Error leyendo duración del video, intentando reparar")
         path = fix_mp4(path)
         total = get_duration(path)
         if total == 0:
-            print("❌ No se puede procesar el video")
-            return
+            return "❌ No se puede procesar el video"
 
     parts = math.ceil(total / duration)
     name = os.path.splitext(os.path.basename(path))[0]
 
     for i in range(parts):
         start = i * duration
-        output_name = f"{name} #{i+1}.mp4"
-        output_download = os.path.join(DOWNLOAD_FOLDER, output_name)
-        output_gallery = os.path.join(GALLERY_FOLDER, output_name)
+        output_name = f"{name}_capítulo_{i+1}.mp4"
+        output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
 
         cmd = [
             "ffmpeg","-y",
@@ -64,49 +59,32 @@ def cut_video(path, duration):
             "-i", path,
             "-t", str(duration),
             "-c","copy",
-            output_download
+            output_path
         ]
-
-        print("▶ Ejecutando:", " ".join(cmd))
         subprocess.run(cmd)
 
-        # 📱 Copiar a galería
-        subprocess.run(["cp", output_download, output_gallery])
-
-        # 📱 Actualizar galería Android
-        subprocess.run([
-            "am","broadcast",
-            "-a","android.intent.action.MEDIA_SCANNER_SCAN_FILE",
-            "-d", f"file://{output_gallery}"
-        ])
-
+    # Guardar en historial
     history.append({
         "name": name,
         "clips": parts,
         "date": str(datetime.datetime.now())
     })
 
-# 🏠 HOME
-@app.route('/')
+# 🏠 HOME + Subida y corte automático
+@app.route('/', methods=['GET','POST'])
 def index():
-    return render_template("index.html")
-
-# 📜 HISTORIAL
-@app.route('/history', methods=['GET','POST'])
-def history_page():
-    global history
     if request.method == 'POST':
-        history = []
-    return render_template("history.html", videos=history)
-
-# 📁 SUBIR ARCHIVO
-@app.route('/upload', methods=['GET','POST'])
-def upload_file():
-    if request.method == 'POST':
+        if 'video_file' not in request.files:
+            return "❌ No se envió ningún archivo", 400
+        
         file = request.files['video_file']
-        duration = int(request.form['duration'])
-        if not file:
-            return "❌ No se subió archivo"
+        if file.filename == '':
+            return "❌ No se seleccionó ningún archivo", 400
+
+        try:
+            duration = int(request.form['duration'])
+        except:
+            return "❌ Duración inválida", 400
 
         path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(path)
@@ -115,34 +93,16 @@ def upload_file():
 
     return render_template("upload_file.html")
 
-# 🔗 DESCARGA POR LINK (yt-dlp)
-@app.route('/link', methods=['GET','POST'])
-def link_download():
-    if request.method == 'POST':
-        url = request.form['video_url']
-        duration = int(request.form['duration'])
-        temp = os.path.join(UPLOAD_FOLDER, "temp_video.mp4")
+# 📜 Página de historial
+@app.route('/history')
+def history_page():
+    return render_template("history.html", videos=history)
 
-        print("⬇ Descargando video:", url)
-        try:
-            # Usar yt-dlp para cualquier página
-            subprocess.run(["yt-dlp","-f","best[ext=mp4]",url,"-o",temp], check=True)
-        except:
-            return "❌ Error descargando el video"
-
-        # Reparar MP4 y cortar
-        fixed = fix_mp4(temp)
-        cut_video(fixed, duration)
-
-        return redirect(url_for('history_page'))
-
-    return render_template("link_download.html")
-
-# 📥 DESCARGAR ARCHIVO
+# 📥 Descargar clips
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
-# 🚀 INICIO
+# 🚀 Inicio del servidor
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
