@@ -1,5 +1,7 @@
 import os
+import uuid
 import time
+import threading
 import subprocess
 from flask import Flask, request, render_template, send_from_directory, jsonify
 
@@ -10,36 +12,61 @@ init_folders()
 
 CAPITULOS = 20
 
+# =========================
+# 📊 MEMORY JOBS (estado)
+# =========================
+JOBS = {}
+
 
 # =========================
 # 🏠 HOME
 # =========================
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
     return render_template("upload.html")
 
 
 # =========================
-# 📤 UPLOAD + SPLIT 20 CAPÍTULOS
+# 📤 UPLOAD (NO BLOQUEA)
 # =========================
 @app.route("/upload", methods=["POST"])
 def upload():
 
-    if "video" not in request.files:
+    file = request.files.get("video")
+
+    if not file:
         return "No file", 400
 
-    file = request.files["video"]
-
-    if file.filename == "":
-        return "Empty file", 400
+    job_id = str(uuid.uuid4())[:8]
 
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    base = os.path.splitext(file.filename)[0]
-
     file.save(input_path)
 
-    # 🔥 obtener duración real
+    JOBS[job_id] = {
+        "status": "processing",
+        "progress": 0,
+        "file": file.filename
+    }
+
+    thread = threading.Thread(
+        target=process_video,
+        args=(job_id, input_path, file.filename)
+    )
+    thread.start()
+
+    return render_template("processing.html", job_id=job_id)
+
+
+# =========================
+# ⚙️ PROCESO EN BACKGROUND
+# =========================
+def process_video(job_id, input_path, filename):
+
+    base = os.path.splitext(filename)[0]
+    output_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_cap_%02d.mp4")
+
     try:
+        # 📏 duración
         duration = float(subprocess.check_output([
             "ffprobe",
             "-v", "error",
@@ -47,28 +74,43 @@ def upload():
             "-of", "default=noprint_wrappers=1:nokey=1",
             input_path
         ]).decode().strip())
-    except:
-        return "Error leyendo video", 500
 
-    segment_time = duration / CAPITULOS
+        segment_time = duration / CAPITULOS
 
-    output_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_cap_%02d.mp4")
+        JOBS[job_id]["progress"] = 20
 
-    cmd = [
-        "ffmpeg", "-y",
-        "-i", input_path,
-        "-c", "copy",
-        "-f", "segment",
-        "-segment_time", str(segment_time),
-        "-reset_timestamps", "1",
-        output_pattern
-    ]
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", input_path,
+            "-c", "copy",
+            "-f", "segment",
+            "-segment_time", str(segment_time),
+            "-reset_timestamps", "1",
+            output_pattern
+        ]
 
-    start = time.time()
-    subprocess.run(cmd)
-    end = time.time()
+        subprocess.run(cmd)
 
-    return render_template("done.html", base=base, time=round(end-start, 2))
+        JOBS[job_id]["status"] = "done"
+        JOBS[job_id]["progress"] = 100
+
+    except Exception as e:
+        JOBS[job_id]["status"] = "error"
+        JOBS[job_id]["error"] = str(e)
+
+
+# =========================
+# 📊 PROGRESS API
+# =========================
+@app.route("/progress/<job_id>")
+def progress(job_id):
+
+    job = JOBS.get(job_id)
+
+    if not job:
+        return jsonify({"status": "not_found"})
+
+    return jsonify(job)
 
 
 # =========================
@@ -77,7 +119,10 @@ def upload():
 @app.route("/history")
 def history():
 
-    files = os.listdir(DOWNLOAD_FOLDER)
+    files = []
+
+    if os.path.exists(DOWNLOAD_FOLDER):
+        files = sorted(os.listdir(DOWNLOAD_FOLDER), reverse=True)
 
     return render_template("history.html", videos=files)
 
@@ -91,15 +136,24 @@ def download(filename):
 
 
 # =========================
-# 📊 STATUS
+# 📊 STATUS GENERAL
 # =========================
 @app.route("/status")
 def status():
-    return jsonify({"status": "online"})
+    return jsonify({
+        "status": "online",
+        "jobs": len(JOBS),
+        "caps": CAPITULOS
+    })
 
 
 # =========================
 # 🚀 RUN
 # =========================
 if __name__ == "__main__":
-    app.run(host=HOST, port=PORT, debug=DEBUG)
+    app.run(
+        host=HOST,
+        port=PORT,
+        debug=DEBUG,
+        threaded=True
+    )
