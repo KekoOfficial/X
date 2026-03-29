@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Video</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Video Cutter 20 Chapters</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <div>MallyCuts 🚀</div>
-    <div>
-        <a href="{{ url_for('index') }}">Upload</a>
-        <a href="{{ url_for('history_page') }}">History</a>
-    </div>
+<div class="nav">
+    <h2>🎬 Video Cutter Pro</h2>
+    <a href="/history">History</a>
 </div>
 
-<!-- CONTAINER -->
 <div class="container">
 
     <div class="card">
-        <h2>📤 Subir Video</h2>
 
-        <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="video_file" required>
-            <input type="number" name="duration" placeholder="Duración en segundos" required>
-            <button type="submit">Cortar Video</button>
+        <h3>Subir video</h3>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+
+            <input type="file" name="video" required>
+
+            <button type="submit">Cortar en 20 capítulos</button>
+
         </form>
+
     </div>
 
 </div>
