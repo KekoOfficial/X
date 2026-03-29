@@ -1,0 +1,86 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0f0f0f;
+    color: white;
+}
+
+/* NAVBAR */
+.navbar {
+    background: #1a1a1a;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+    transition: 0.3s;
+}
+
+.navbar a:hover {
+    color: #00ffcc;
+}
+
+/* CONTAINER */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* CARD */
+.card {
+    background: #1c1c1c;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* INPUTS */
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+input {
+    background: #2a2a2a;
+    color: white;
+}
+
+button {
+    background: #00ffcc;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #00d1aa;
+}
+
+/* LISTA VIDEOS */
+.video-box {
+    background: #222;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.video-box a {
+    display: inline-block;
+    margin-top: 8px;
+    color: #00ffcc;
+}
