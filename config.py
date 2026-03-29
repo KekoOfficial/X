@@ -22,7 +22,7 @@ DOWNLOAD_FOLDER = os.path.join(BASE_DIR, "downloads")
 LOG_FOLDER = os.path.join(BASE_DIR, "logs")
 
 # 📱 Android Gallery
-GALLERY_FOLDER = "/storage/emulated/0/Movies/MallyCuts"
+GALLERY_FOLDER = "/storage/emulated/0/Download"
 
 # =========================
 # 🧠 AUTO SETUP FOLDERS
