@@ -7,7 +7,7 @@ from config import *
 from logger import Logger
 
 # =========================
-# INIT
+# INIT APP
 # =========================
 app = Flask(__name__)
 init_folders()
@@ -15,9 +15,9 @@ init_folders()
 log = Logger("MallyCuts")
 
 # =========================
-# 🏠 HOME
+# 🏠 HOME (SOLO GET)
 # =========================
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
     return render_template("upload_file.html")
 
@@ -27,12 +27,17 @@ def index():
 @app.route("/upload", methods=["POST"])
 def upload():
 
+    # VALIDACIÓN FILE
     if "video_file" not in request.files:
-        return "No file uploaded"
+        return "❌ No file uploaded", 400
 
     file = request.files["video_file"]
     duration = request.form.get("duration", "5")
 
+    if file.filename == "":
+        return "❌ Empty filename", 400
+
+    # PATHS
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
     output_name = "cut_" + file.filename
     output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
@@ -40,7 +45,7 @@ def upload():
     file.save(input_path)
 
     # =========================
-    # 🎬 FFMPEG COMMAND (PRO FIXED)
+    # 🎬 FFMPEG (STABLE MODE)
     # =========================
     cmd = [
         "ffmpeg", "-y",
@@ -65,9 +70,7 @@ def upload():
 
     end = time.time()
 
-    # =========================
-    # 📄 LOG OUTPUT
-    # =========================
+    # LOG
     ff_log = log.ffmpeg(
         process_time=end - start,
         return_code=process.returncode,
@@ -81,31 +84,36 @@ def upload():
 # =========================
 # 📜 HISTORY (FIXED)
 # =========================
-@app.route("/history")
+@app.route("/history", methods=["GET"])
 def history_page():
 
-    files = []
+    videos = []
 
     if os.path.exists(DOWNLOAD_FOLDER):
         for f in os.listdir(DOWNLOAD_FOLDER):
             path = os.path.join(DOWNLOAD_FOLDER, f)
 
-            files.append({
-                "name": f,
-                "size": round(os.path.getsize(path) / 1024, 2)
-            })
+            if os.path.isfile(path):
+                videos.append({
+                    "name": f,
+                    "size_kb": round(os.path.getsize(path) / 1024, 2)
+                })
 
-    return render_template("history.html", videos=files)
+    return render_template("history.html", videos=videos)
 
 # =========================
 # 📥 DOWNLOAD FILE
 # =========================
 @app.route("/download/<filename>")
 def download(filename):
-    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
+    return send_from_directory(
+        DOWNLOAD_FOLDER,
+        filename,
+        as_attachment=True
+    )
 
 # =========================
-# 📊 API STATUS (BOT / WEB)
+# 📊 STATUS API (BOT + WEB)
 # =========================
 @app.route("/status")
 def status():
@@ -120,7 +128,7 @@ def status():
 # =========================
 if __name__ == "__main__":
     print(log.success("Server starting..."))
-    print(f"Running on http://{HOST}:{PORT}")
+    print(f"🌐 Running on http://{HOST}:{PORT}")
 
     app.run(
         host=HOST,
