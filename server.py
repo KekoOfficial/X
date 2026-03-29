@@ -1,18 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import os, subprocess, math, datetime
 
-# 🔥 Carpetas de trabajo
-UPLOAD_FOLDER = "./uploads"
-DOWNLOAD_FOLDER = "./downloads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+from config import *
 
-# 📜 Historial de videos procesados
+# =========================
+# 🚀 INIT
+# =========================
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+
+ensure_folders()
+
+# 📜 HISTORIAL GLOBAL
 history = []
 
-app = Flask(__name__)
-
-# 🎯 Obtener duración del video en segundos
+# =========================
+# 🎯 VIDEO UTILS
+# =========================
 def get_duration(path):
     result = subprocess.run([
         "ffprobe","-v","error",
@@ -26,9 +30,9 @@ def get_duration(path):
     except:
         return 0
 
-# 🚀 Reparar MP4 incompleto
+
 def fix_mp4(path):
-    fixed = path.replace(".mp4","_fixed.mp4")
+    fixed = path.replace(".mp4", "_fixed.mp4")
     subprocess.run([
         "ffmpeg","-y","-i",path,
         "-c","copy","-movflags","faststart",
@@ -36,73 +40,87 @@ def fix_mp4(path):
     ])
     return fixed
 
-# 🚀 Corte automático por capítulos
+
 def cut_video(path, duration):
     total = get_duration(path)
+
     if total == 0:
         path = fix_mp4(path)
         total = get_duration(path)
         if total == 0:
-            return "❌ No se puede procesar el video"
+            return
 
     parts = math.ceil(total / duration)
     name = os.path.splitext(os.path.basename(path))[0]
 
+    files = []
+
     for i in range(parts):
         start = i * duration
-        output_name = f"{name}_capítulo_{i+1}.mp4"
+        output_name = f"{name}_cap_{i+1}.mp4"
         output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
 
-        cmd = [
+        subprocess.run([
             "ffmpeg","-y",
             "-ss", str(start),
             "-i", path,
             "-t", str(duration),
             "-c","copy",
             output_path
-        ]
-        subprocess.run(cmd)
+        ])
 
-    # Guardar en historial
+        files.append(output_name)
+
     history.append({
         "name": name,
-        "clips": parts,
+        "clips": files,
         "date": str(datetime.datetime.now())
     })
 
-# 🏠 HOME + Subida y corte automático
+# =========================
+# 🏠 HOME
+# =========================
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'POST':
-        if 'video_file' not in request.files:
-            return "❌ No se envió ningún archivo", 400
-        
-        file = request.files['video_file']
-        if file.filename == '':
-            return "❌ No se seleccionó ningún archivo", 400
+
+        file = request.files.get('video_file')
+        if not file or file.filename == "":
+            return "❌ Archivo inválido", 400
+
+        if not allowed_file(file.filename):
+            return "❌ Formato no permitido", 400
 
         try:
-            duration = int(request.form['duration'])
+            duration = int(request.form.get('duration', 0))
         except:
             return "❌ Duración inválida", 400
 
         path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(path)
+
         cut_video(path, duration)
+
         return redirect(url_for('history_page'))
 
     return render_template("upload_file.html")
 
-# 📜 Página de historial
+# =========================
+# 📜 HISTORY
+# =========================
 @app.route('/history')
 def history_page():
     return render_template("history.html", videos=history)
 
-# 📥 Descargar clips
+# =========================
+# 📥 DOWNLOAD FILE
+# =========================
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
-# 🚀 Inicio del servidor
+# =========================
+# 🚀 START SERVER
+# =========================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host=HOST, port=PORT, debug=DEBUG)
