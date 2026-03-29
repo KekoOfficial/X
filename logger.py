@@ -1,5 +1,5 @@
-import time
 import datetime
+import time
 
 class Logger:
     def __init__(self, name="MallyCuts"):
@@ -8,6 +8,9 @@ class Logger:
     def _time(self):
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # =========================
+    # 📌 BASIC LOGS
+    # =========================
     def info(self, msg):
         return self._format("INFO", msg)
 
@@ -20,46 +23,46 @@ class Logger:
     def error(self, msg):
         return self._format("ERROR", msg)
 
-    def ffmpeg(self, process_time, return_code, raw_log):
-        clean = self._clean(raw_log)
-
+    # =========================
+    # 🎬 FFMPEG LOG CLEAN
+    # =========================
+    def ffmpeg(self, process_time, return_code, raw):
+        clean = self._clean(raw)
         status = "SUCCESS" if return_code == 0 else "FAILED"
 
         return f"""
-🎬 {self.name} FFmpeg LOG
+🎬 {self.name} ENGINE LOG
 
-📊 Estado: {status}
-⏱ Tiempo: {process_time:.2f}s
-🔁 Código: {return_code}
-🕒 Hora: {self._time()}
+📊 Status: {status}
+⏱ Time: {round(process_time,2)}s
+🔁 Code: {return_code}
+🕒 Time: {self._time()}
 
-📄 Detalles:
-{clean if clean else "Sin detalles relevantes ⚡"}
+📄 OUTPUT:
+{clean if clean else "No relevant output ⚡"}
 """
 
+    # =========================
+    # 🔧 INTERNAL FORMAT
+    # =========================
     def _format(self, level, msg):
         return f"[{self._time()}] [{level}] {msg}"
 
+    # =========================
+    # 🧹 CLEAN FFMPEG OUTPUT
+    # =========================
     def _clean(self, text):
         if not text:
             return ""
 
         lines = text.split("\n")
-        important = []
+        out = []
 
-        for line in lines:
-            line = line.strip()
+        keys = ["error", "warning", "frame", "fps", "speed", "video", "audio", "stream"]
 
-            if not line:
-                continue
+        for l in lines:
+            l = l.strip()
+            if any(k in l.lower() for k in keys):
+                out.append(l)
 
-            keywords = [
-                "error", "warning", "frame",
-                "video", "audio", "time",
-                "speed", "duration", "stream"
-            ]
-
-            if any(k in line.lower() for k in keywords):
-                important.append(line)
-
-        return "\n".join(important[-20:])
+        return "\n".join(out[-20:])
