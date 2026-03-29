@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Procesando...</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>⏳ Procesando video...</h2>
+
+        <p>ID: {{ job_id }}</p>
+
+        <div id="status">Iniciando...</div>
+
+    </div>
+
+</div>
+
+<script>
+async function check() {
+    let res = await fetch("/progress/{{ job_id }}");
+    let data = await res.json();
+
+    document.getElementById("status").innerText =
+        data.status + " | " + (data.progress || 0) + "%";
+
+    if (data.status !== "done" && data.status !== "error") {
+        setTimeout(check, 2000);
+    } else {
+        document.getElementById("status").innerText += " ✔";
+    }
+}
+
+check();
+</script>
+
+</body>
+</html>
