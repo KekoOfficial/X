@@ -1,19 +1,20 @@
 import os
 import uuid
 import time
-import threading
 import subprocess
+import threading
 from flask import Flask, request, render_template, send_from_directory, jsonify
 
 from config import *
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
+
 init_folders()
 
 CAPITULOS = 20
 
 # =========================
-# 📊 MEMORY JOBS (estado)
+# 📊 JOBS (progreso)
 # =========================
 JOBS = {}
 
@@ -21,13 +22,13 @@ JOBS = {}
 # =========================
 # 🏠 HOME
 # =========================
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
-    return render_template("upload.html")
+    return render_template("upload_file.html")
 
 
 # =========================
-# 📤 UPLOAD (NO BLOQUEA)
+# 📤 UPLOAD + PROCESS
 # =========================
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -36,6 +37,9 @@ def upload():
 
     if not file:
         return "No file", 400
+
+    if file.filename == "":
+        return "Empty file", 400
 
     job_id = str(uuid.uuid4())[:8]
 
@@ -58,7 +62,7 @@ def upload():
 
 
 # =========================
-# ⚙️ PROCESO EN BACKGROUND
+# ⚙️ PROCESS VIDEO
 # =========================
 def process_video(job_id, input_path, filename):
 
@@ -77,7 +81,7 @@ def process_video(job_id, input_path, filename):
 
         segment_time = duration / CAPITULOS
 
-        JOBS[job_id]["progress"] = 20
+        JOBS[job_id]["progress"] = 30
 
         cmd = [
             "ffmpeg", "-y",
@@ -136,19 +140,19 @@ def download(filename):
 
 
 # =========================
-# 📊 STATUS GENERAL
+# 📊 STATUS
 # =========================
 @app.route("/status")
 def status():
     return jsonify({
         "status": "online",
-        "jobs": len(JOBS),
-        "caps": CAPITULOS
+        "caps": CAPITULOS,
+        "jobs": len(JOBS)
     })
 
 
 # =========================
-# 🚀 RUN
+# 🚀 RUN SERVER
 # =========================
 if __name__ == "__main__":
     app.run(
