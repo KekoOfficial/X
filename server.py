@@ -4,134 +4,102 @@ import subprocess
 from flask import Flask, request, render_template, send_from_directory, jsonify
 
 from config import *
-from logger import Logger
 
-# =========================
-# INIT APP
-# =========================
 app = Flask(__name__)
 init_folders()
 
-log = Logger("MallyCuts")
+CAPITULOS = 20
+
 
 # =========================
-# 🏠 HOME (SOLO GET)
+# 🏠 HOME
 # =========================
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("upload_file.html")
+    return render_template("upload.html")
+
 
 # =========================
-# 📤 UPLOAD + CUT VIDEO
+# 📤 UPLOAD + SPLIT 20 CAPÍTULOS
 # =========================
 @app.route("/upload", methods=["POST"])
 def upload():
 
-    # VALIDACIÓN FILE
-    if "video_file" not in request.files:
-        return "❌ No file uploaded", 400
+    if "video" not in request.files:
+        return "No file", 400
 
-    file = request.files["video_file"]
-    duration = request.form.get("duration", "5")
+    file = request.files["video"]
 
     if file.filename == "":
-        return "❌ Empty filename", 400
+        return "Empty file", 400
 
-    # PATHS
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    output_name = "cut_" + file.filename
-    output_path = os.path.join(DOWNLOAD_FOLDER, output_name)
+    base = os.path.splitext(file.filename)[0]
 
     file.save(input_path)
 
-    # =========================
-    # 🎬 FFMPEG (STABLE MODE)
-    # =========================
+    # 🔥 obtener duración real
+    try:
+        duration = float(subprocess.check_output([
+            "ffprobe",
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            input_path
+        ]).decode().strip())
+    except:
+        return "Error leyendo video", 500
+
+    segment_time = duration / CAPITULOS
+
+    output_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_cap_%02d.mp4")
+
     cmd = [
         "ffmpeg", "-y",
         "-i", input_path,
-        "-t", str(duration),
-        "-c:v", "copy",
-        "-c:a", "aac",
-        "-b:a", "128k",
-        output_path
+        "-c", "copy",
+        "-f", "segment",
+        "-segment_time", str(segment_time),
+        "-reset_timestamps", "1",
+        output_pattern
     ]
 
     start = time.time()
-
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-
-    _, stderr = process.communicate()
-
+    subprocess.run(cmd)
     end = time.time()
 
-    # LOG
-    ff_log = log.ffmpeg(
-        process_time=end - start,
-        return_code=process.returncode,
-        raw=stderr
-    )
+    return render_template("done.html", base=base, time=round(end-start, 2))
 
-    print(ff_log)
-
-    return ff_log
 
 # =========================
-# 📜 HISTORY (FIXED)
+# 📜 HISTORY
 # =========================
-@app.route("/history", methods=["GET"])
-def history_page():
+@app.route("/history")
+def history():
 
-    videos = []
+    files = os.listdir(DOWNLOAD_FOLDER)
 
-    if os.path.exists(DOWNLOAD_FOLDER):
-        for f in os.listdir(DOWNLOAD_FOLDER):
-            path = os.path.join(DOWNLOAD_FOLDER, f)
+    return render_template("history.html", videos=files)
 
-            if os.path.isfile(path):
-                videos.append({
-                    "name": f,
-                    "size_kb": round(os.path.getsize(path) / 1024, 2)
-                })
-
-    return render_template("history.html", videos=videos)
 
 # =========================
-# 📥 DOWNLOAD FILE
+# 📥 DOWNLOAD
 # =========================
 @app.route("/download/<filename>")
 def download(filename):
-    return send_from_directory(
-        DOWNLOAD_FOLDER,
-        filename,
-        as_attachment=True
-    )
+    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
+
 
 # =========================
-# 📊 STATUS API (BOT + WEB)
+# 📊 STATUS
 # =========================
 @app.route("/status")
 def status():
-    return jsonify({
-        "status": "online",
-        "service": "MallyCuts",
-        "time": time.time()
-    })
+    return jsonify({"status": "online"})
+
 
 # =========================
-# 🚀 RUN SERVER
+# 🚀 RUN
 # =========================
 if __name__ == "__main__":
-    print(log.success("Server starting..."))
-    print(f"🌐 Running on http://{HOST}:{PORT}")
-
-    app.run(
-        host=HOST,
-        port=PORT,
-        debug=DEBUG
-    )
+    app.run(host=HOST, port=PORT, debug=DEBUG)
