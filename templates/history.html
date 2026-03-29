@@ -2,37 +2,28 @@
 <html>
 <head>
     <title>History</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <div>MallyCuts 📜</div>
-    <div>
-        <a href="{{ url_for('index') }}">Upload</a>
-        <a href="{{ url_for('history_page') }}">History</a>
-    </div>
+<div class="nav">
+    <h2>📜 History</h2>
+    <a href="/">Upload</a>
 </div>
 
-<!-- CONTAINER -->
 <div class="container">
-
-    <h2>📜 Historial de Videos</h2>
 
     {% for video in videos %}
 
-    <div class="video-box">
-        <h3>🎬 {{ video.name }}</h3>
-        <small>{{ video.date }}</small>
+    <div class="card">
 
-        {% for clip in video.clips %}
-            <br>
-            <a href="{{ url_for('download_file', filename=clip) }}">
-                📥 Descargar {{ clip }}
-            </a>
-        {% endfor %}
+        🎬 {{ video }}
+
+        <br><br>
+
+        <a href="/download/{{ video }}">📥 Descargar</a>
+
     </div>
 
     {% endfor %}
