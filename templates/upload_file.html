@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Video</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div>MallyCuts 🚀</div>
+    <div>
+        <a href="{{ url_for('index') }}">Upload</a>
+        <a href="{{ url_for('history_page') }}">History</a>
+    </div>
+</div>
+
+<!-- CONTAINER -->
+<div class="container">
+
+    <div class="card">
+        <h2>📤 Subir Video</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="video_file" required>
+            <input type="number" name="duration" placeholder="Duración en segundos" required>
+            <button type="submit">Cortar Video</button>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>
