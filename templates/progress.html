@@ -7,69 +7,34 @@
 </head>
 <body>
     <div class="glass-container monitor">
-        <header>
-            <h2>ESTADO DEL <span class="highlight">SISTEMA</span></h2>
-            <p id="job-title">Procesando: ...</p>
-        </header>
-
-        <div class="monitor-box">
-            <div class="status-badge" id="status-text">ESPERANDO MOTOR...</div>
-            
-            <div class="progress-wrapper">
-                <div class="progress-bar-bg">
-                    <div id="bar" class="progress-bar"></div>
-                </div>
-                <div class="stats">
-                    <span id="part-count">Parte: 0 / ?</span>
-                    <span id="percent">0%</span>
-                </div>
-            </div>
-
-            <div class="log-box" id="logs">
-                <p>> Iniciando hilos de procesamiento...</p>
-                <p>> Conectando con Telegram API...</p>
-            </div>
-
-            <div class="footer-actions">
-                <p class="hint">📱 Los clips aparecerán en tu Telegram automáticamente.</p>
-                <a href="/" class="btn-back">NUEVA SUBIDA</a>
-            </div>
+        <h2>ESTADO DEL <span class="highlight">MOTOR</span></h2>
+        <div class="status-badge processing" id="status-text">PROCESANDO...</div>
+        <div class="progress-bar-bg">
+            <div id="bar" class="progress-bar"></div>
         </div>
+        <p id="part-count" style="margin-top:15px;">Parte: 0 / 0</p>
+        <div class="log-box" id="logs">
+            <p>> Conexión establecida con el bot...</p>
+        </div>
+        <a href="/" class="btn-back" style="display:block; margin-top:20px; color:var(--accent);">Subir otro</a>
     </div>
-
     <script>
-        const jobId = "{{ job_id }}";
-        async function updateStatus() {
-            try {
-                const res = await fetch(`/api/status/${jobId}`);
-                const data = await res.json();
-
-                const bar = document.getElementById('bar');
-                const status = document.getElementById('status-text');
-                const logs = document.getElementById('logs');
-
-                if (data.status === "processing") {
-                    status.innerText = "CORTANDO Y ENVIANDO...";
-                    status.className = "status-badge processing";
-                    let p = (data.current_part / data.total_parts) * 100;
-                    bar.style.width = p + "%";
-                    document.getElementById('part-count').innerText = `Parte: ${data.current_part} / ${data.total_parts}`;
-                    document.getElementById('percent').innerText = Math.round(p) + "%";
-                } 
-                else if (data.status === "completed") {
-                    status.innerText = "¡SISTEMA COMPLETADO!";
-                    status.className = "status-badge done";
-                    bar.style.width = "100%";
-                    logs.innerHTML += `<p class="success">> ¡Todo el material ha sido enviado!</p>`;
-                    return; // Detener polling
-                }
-
-                setTimeout(updateStatus, 3000);
-            } catch (e) {
-                console.error("Error de conexión con el motor.");
+        const jobId = window.location.pathname.split('/').pop();
+        async function update() {
+            const res = await fetch(`/api/status/${jobId}`);
+            const data = await res.json();
+            if (data.status === "processing") {
+                let p = (data.current_part / data.total_parts) * 100;
+                document.getElementById('bar').style.width = p + "%";
+                document.getElementById('part-count').innerText = `Parte: ${data.current_part} / ${data.total_parts}`;
+            } else if (data.status === "completed") {
+                document.getElementById('status-text').innerText = "COMPLETADO";
+                document.getElementById('bar').style.width = "100%";
+                return;
             }
+            setTimeout(update, 2000);
         }
-        updateStatus();
+        update();
     </script>
 </body>
 </html>
