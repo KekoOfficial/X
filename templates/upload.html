@@ -1,34 +1,62 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>MallyCuts - Subida</title>
-    <link rel="stylesheet" href="/static/upload.css">
-</head>
-<body>
-    <div class="main-container">
-        <div class="upload-card">
-            <h1>🎬 MallyCuts <span class="pro-tag">PRO</span></h1>
-            <p>Divide tus videos y recíbelos en Telegram al instante.</p>
-            
-            <form action="/upload" method="POST" enctype="multipart/form-data">
-                <div class="file-input-wrapper">
-                    <input type="file" name="video" id="video" accept="video/*" required>
-                    <label for="video">📁 Seleccionar Video</label>
-                </div>
-
-                <div class="options-group">
-                    <label>Frecuencia de corte:</label>
-                    <select name="time_choice">
-                        <option value="180">Cada 3 Minutos</option>
-                        <option value="300" selected>Cada 5 Minutos</option>
-                        <option value="600">Cada 10 Minutos</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn-start">Iniciar Proceso 🚀</button>
-            </form>
-        </div>
+<div class="upload-card">
+    <h1>🎬 MallyCuts <span class="pro-tag">ANALYZER</span></h1>
+    
+    <div id="step-1">
+        <input type="file" id="video-file" accept="video/*">
+        <button onclick="subirYAnalizar()" id="btn-upload">Analizar Video 🔍</button>
     </div>
-</body>
-</html>
+
+    <div id="step-2" class="hidden" style="margin-top:20px; text-align:left; border-top:1px solid #333; padding-top:10px;">
+        <p><strong>Video:</strong> <span id="info-name"></span></p>
+        <p><strong>Duración:</strong> <span id="info-dur"></span></p>
+        <hr>
+        <label>Elige tu plan de corte:</label>
+        <select id="time-select" style="width:100%; margin:10px 0;"></select>
+        <button onclick="confirmarCorte()" class="btn-start">¡Generar Capítulos ahora! 🚀</button>
+    </div>
+</div>
+
+<script>
+let currentFileId = "";
+
+async function subirYAnalizar() {
+    const file = document.getElementById('video-file').files[0];
+    if(!file) return alert("Selecciona un video");
+    
+    document.getElementById('btn-upload').innerText = "Analizando... ⏳";
+    
+    let formData = new FormData();
+    formData.append("video", file);
+
+    let res = await fetch("/analyze", { method: "POST", body: formData });
+    let data = await res.json();
+
+    currentFileId = data.file_id;
+    document.getElementById('info-name').innerText = data.name;
+    document.getElementById('info-dur').innerText = data.duration_msg;
+    
+    // Llenar el selector con los datos calculados
+    let select = document.getElementById('time-select');
+    select.innerHTML = `
+        <option value="180">3 min (${data.options['3min'].caps} capítulos)</option>
+        <option value="300">5 min (${data.options['5min'].caps} capítulos)</option>
+        <option value="600">10 min (${data.options['10min'].caps} capítulos)</option>
+    `;
+
+    document.getElementById('step-1').classList.add('hidden');
+    document.getElementById('step-2').classList.remove('hidden');
+}
+
+async function confirmarCorte() {
+    let seconds = document.getElementById('time-select').value;
+    let res = await fetch("/confirm", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ file_id: currentFileId, seconds: seconds })
+    });
+    let data = await res.json();
+    if(data.job_id) {
+        window.location.href = "/progress_page/" + data.job_id; // Redirigir a progreso
+    }
+}
+</script>
