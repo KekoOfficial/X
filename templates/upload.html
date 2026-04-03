@@ -1,35 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>MallyCuts Pro</title>
-    <style> ... </style> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MallyCuts Pro | Imperial Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --bg: #050505;
+            --card: rgba(20, 20, 25, 0.85);
+            --border: rgba(0, 242, 255, 0.2);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle at top right, #101820, transparent);
+        }
+
+        .glass-container {
+            background: var(--card);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+        }
+
+        h1 {
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .highlight {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .settings-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .settings-row:last-child { margin-bottom: 0; }
+
+        .pro-select {
+            background: #111;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 8px;
+            outline: none;
+            font-weight: bold;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 50px 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .drop-zone:hover {
+            background: rgba(0, 242, 255, 0.04);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .icon-turbo {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--primary));
+        }
+
+        .loader-box {
+            display: none;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 242, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .success-text { color: var(--primary); font-weight: bold; }
+    </style>
 </head>
 <body>
+
     <div class="glass-container">
         <h1>MALLY<span class="highlight">CUTS PRO</span></h1>
+        <p class="subtitle">Motor de segmentación sincronizada</p>
         
-        <div id="upload-box">
-            <div class="settings-row">
-                <select id="time-select" class="pro-input">
-                    <option value="60">Cortes de 1 Minuto</option>
-                    <option value="300">Cortes de 5 Minutos</option>
-                </select>
-                <label style="font-size: 14px;">
-                    <input type="checkbox" id="silent-mode"> 🤫 Silencio
-                </label>
+        <div id="upload-ui">
+            <div class="settings-box">
+                <div class="settings-row">
+                    <span>Duración:</span>
+                    <select id="time-select" class="pro-select">
+                        <option value="60">1 Minuto</option>
+                        <option value="300">5 Minutos</option>
+                        <option value="600">10 Minutos</option>
+                    </select>
+                </div>
+                <div class="settings-row">
+                    <span>Modo Silencio:</span>
+                    <input type="checkbox" id="silent-mode">
+                </div>
             </div>
 
             <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden onchange="iniciarSistema()">
-                <div class="icon">⚡</div>
+                <input type="file" id="video-input" hidden onchange="iniciarProceso()">
+                <span class="icon-turbo">⚡</span>
                 <p>SUBIR VIDEO MAESTRO</p>
             </div>
         </div>
 
-        <div id="status-pro" style="display:none;">
-            <div class="pro-loader"></div>
-            <p id="msg-pro">PROCESANDO SECUENCIA...</p>
+        <div id="loader-ui" class="loader-box">
+            <div class="spinner"></div>
+            <p id="status-msg">SUBIENDO AL SERVIDOR...</p>
+            <p style="font-size: 11px; color: #666;">No cierres esta pestaña hasta completar.</p>
         </div>
     </div>
+
+    <script>
+        async function iniciarProceso() {
+            const input = document.getElementById('video-input');
+            if (!input.files[0]) return;
+
+            // Cambiar interfaz
+            document.getElementById('upload-ui').style.display = 'none';
+            document.getElementById('loader-ui').style.display = 'block';
+
+            const formData = new FormData();
+            formData.append("video", input.files[0]);
+            formData.append("seconds", document.getElementById('time-select').value);
+            formData.append("silent", document.getElementById('silent-mode').checked);
+
+            try {
+                const response = await fetch("/api/upload_pro", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    document.getElementById('status-msg').innerHTML = 
+                        "<span class='success-text'>¡SISTEMA EN MARCHA!</span><br>Revisa tu Telegram.";
+                    document.querySelector('.spinner').style.display = 'none';
+                }
+            } catch (error) {
+                alert("Error crítico en la conexión Imperial.");
+                location.reload();
+            }
+        }
+    </script>
 </body>
 </html>
