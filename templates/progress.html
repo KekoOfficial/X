@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MallyCuts - Procesando</title>
+    <link rel="stylesheet" href="/static/progress.css">
+</head>
+<body>
+    <div class="status-container">
+        <div class="status-card">
+            <h2>⏳ Procesando Capítulo...</h2>
+            <p id="job-id">ID: {{ job_id }}</p>
+            
+            <div class="loader-wrapper">
+                <div id="bar" class="progress-bar"></div>
+            </div>
+
+            <div id="status-msg" class="info-msg">Iniciando motores de FFmpeg...</div>
+            
+            <p class="telegram-hint">📱 Revisa tu chat de Telegram, los videos llegarán ahí.</p>
+            
+            <a href="/" class="btn-back">Subir otro video</a>
+        </div>
+    </div>
+
+    <script>
+        async function updateStatus() {
+            try {
+                let res = await fetch("/progress/{{ job_id }}");
+                let data = await res.json();
+                let bar = document.getElementById("bar");
+                let msg = document.getElementById("status-msg");
+
+                if (data.status === "processing") {
+                    bar.style.width = "60%";
+                    msg.innerText = "Cortando y enviando a Telegram...";
+                    setTimeout(updateStatus, 3000);
+                } else if (data.status === "done") {
+                    bar.style.width = "100%";
+                    bar.classList.add("done");
+                    msg.innerText = "¡Todo enviado correctamente! ✔";
+                } else if (data.status === "error") {
+                    bar.style.background = "#ff4444";
+                    msg.innerText = "Ocurrió un error: " + data.error;
+                }
+            } catch (e) {
+                console.log("Error de conexión");
+                setTimeout(updateStatus, 3000);
+            }
+        }
+        updateStatus();
+    </script>
+</body>
+</html>
