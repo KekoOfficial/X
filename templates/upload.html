@@ -1,62 +1,104 @@
-<div class="upload-card">
-    <h1>🎬 MallyCuts <span class="pro-tag">ANALYZER</span></h1>
-    
-    <div id="step-1">
-        <input type="file" id="video-file" accept="video/*">
-        <button onclick="subirYAnalizar()" id="btn-upload">Analizar Video 🔍</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MallyCuts | Imperial Engine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="glass-container">
+        <header>
+            <h1>🎬 MALLY<span class="highlight">CUTS</span></h1>
+            <p class="subtitle">Análisis y Segmentación Inteligente</p>
+        </header>
+
+        <div id="step-1" class="panel">
+            <div class="drop-zone" id="drop-zone">
+                <input type="file" id="video-input" hidden accept="video/*">
+                <div class="icon">📁</div>
+                <p>Arrastra tu video o haz clic aquí</p>
+            </div>
+            <button id="btn-analyze" class="btn-primary" onclick="analizarVideo()">ANALIZAR VIDEO</button>
+        </div>
+
+        <div id="step-2" class="panel hidden">
+            <div class="video-info">
+                <div class="info-item"><span>Nombre:</span> <b id="info-name">-</b></div>
+                <div class="info-item"><span>Duración:</span> <b id="info-dur">-</b></div>
+                <div class="info-item"><span>Tamaño:</span> <b id="info-size">-</b></div>
+            </div>
+
+            <div class="selection-box">
+                <label>Selecciona Intervalo de Corte:</label>
+                <div class="options-grid" id="options-container">
+                    </div>
+            </div>
+
+            <button id="btn-confirm" class="btn-confirm" onclick="iniciarCorte()">INICIAR PROCESAMIENTO 🚀</button>
+        </div>
     </div>
 
-    <div id="step-2" class="hidden" style="margin-top:20px; text-align:left; border-top:1px solid #333; padding-top:10px;">
-        <p><strong>Video:</strong> <span id="info-name"></span></p>
-        <p><strong>Duración:</strong> <span id="info-dur"></span></p>
-        <hr>
-        <label>Elige tu plan de corte:</label>
-        <select id="time-select" style="width:100%; margin:10px 0;"></select>
-        <button onclick="confirmarCorte()" class="btn-start">¡Generar Capítulos ahora! 🚀</button>
-    </div>
-</div>
+    <script>
+        let currentFileId = "";
+        const dropZone = document.getElementById('drop-zone');
+        const input = document.getElementById('video-input');
 
-<script>
-let currentFileId = "";
+        dropZone.onclick = () => input.click();
 
-async function subirYAnalizar() {
-    const file = document.getElementById('video-file').files[0];
-    if(!file) return alert("Selecciona un video");
-    
-    document.getElementById('btn-upload').innerText = "Analizando... ⏳";
-    
-    let formData = new FormData();
-    formData.append("video", file);
+        async function analizarVideo() {
+            const file = input.files[0];
+            if (!file) return alert("Por favor, selecciona un video.");
 
-    let res = await fetch("/analyze", { method: "POST", body: formData });
-    let data = await res.json();
+            document.getElementById('btn-analyze').innerText = "PROCESANDO METADATOS...";
+            document.getElementById('btn-analyze').disabled = true;
 
-    currentFileId = data.file_id;
-    document.getElementById('info-name').innerText = data.name;
-    document.getElementById('info-dur').innerText = data.duration_msg;
-    
-    // Llenar el selector con los datos calculados
-    let select = document.getElementById('time-select');
-    select.innerHTML = `
-        <option value="180">3 min (${data.options['3min'].caps} capítulos)</option>
-        <option value="300">5 min (${data.options['5min'].caps} capítulos)</option>
-        <option value="600">10 min (${data.options['10min'].caps} capítulos)</option>
-    `;
+            let formData = new FormData();
+            formData.append("video", file);
 
-    document.getElementById('step-1').classList.add('hidden');
-    document.getElementById('step-2').classList.remove('hidden');
-}
+            const res = await fetch("/api/analyze", { method: "POST", body: formData });
+            const data = await res.json();
 
-async function confirmarCorte() {
-    let seconds = document.getElementById('time-select').value;
-    let res = await fetch("/confirm", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ file_id: currentFileId, seconds: seconds })
-    });
-    let data = await res.json();
-    if(data.job_id) {
-        window.location.href = "/progress_page/" + data.job_id; // Redirigir a progreso
-    }
-}
-</script>
+            if (data.status === "error") return alert("Error al analizar");
+
+            currentFileId = data.file_id;
+            document.getElementById('info-name').innerText = data.details.name || file.name;
+            document.getElementById('info-dur').innerText = data.details.duration + " seg";
+            document.getElementById('info-size').innerText = data.details.size_mb + " MB";
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            
+            for (let key in data.predict) {
+                let opt = data.predict[key];
+                container.innerHTML += `
+                    <div class="opt-card" onclick="selectOpt(this, ${opt.sec})">
+                        <span class="time">${key}</span>
+                        <span class="parts">${opt.parts} partes</span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+        }
+
+        let selectedSeconds = 300;
+        function selectOpt(el, sec) {
+            document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedSeconds = sec;
+        }
+
+        async function iniciarCorte() {
+            const res = await fetch("/api/execute", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ file_id: currentFileId, seconds: selectedSeconds })
+            });
+            const data = await res.json();
+            if (data.job_id) window.location.href = `/progress_page/${data.job_id}`;
+        }
+    </script>
+</body>
+</html>
