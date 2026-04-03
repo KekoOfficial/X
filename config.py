@@ -1,39 +1,26 @@
 import os
 
 # =========================
-# 🔐 BOT / API SETTINGS
+# 🔐 CREDENCIALES
 # =========================
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+BOT_TOKEN = "TU_BOT_TOKEN_AQUI"
+CHAT_ID = "TU_CHAT_ID_AQUI" # Tu ID numérico
 
 # =========================
-# 🌐 SERVER SETTINGS
+# 🌐 RED
 # =========================
 HOST = "0.0.0.0"
 PORT = 8000
-DEBUG = True
+DEBUG = False # En producción mejor False
 
 # =========================
-# 📁 BASE PATH
+# 📁 SISTEMA DE ARCHIVOS
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 DOWNLOAD_FOLDER = os.path.join(BASE_DIR, "downloads")
-LOG_FOLDER = os.path.join(BASE_DIR, "logs")
 
-# 📱 Android Gallery
-GALLERY_FOLDER = "/storage/emulated/0/Download"
-
-# =========================
-# 🧠 AUTO SETUP FOLDERS
-# =========================
 def init_folders():
-    folders = [
-        UPLOAD_FOLDER,
-        DOWNLOAD_FOLDER,
-        LOG_FOLDER,
-        GALLERY_FOLDER
-    ]
-
-    for f in folders:
-        os.makedirs(f, exist_ok=True)
+    for f in [UPLOAD_FOLDER, DOWNLOAD_FOLDER]:
+        if not os.path.exists(f):
+            os.makedirs(f, exist_ok=True)
