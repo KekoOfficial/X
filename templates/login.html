@@ -1,33 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>IMP | Acceso TikTok</title>
+    <title>IMP | Login TikTok</title>
     <style>
-        body { background: #000; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: #111; padding: 40px; border-radius: 20px; border: 1px solid #fe2c55; text-align: center; width: 300px; box-shadow: 0 0 20px rgba(254, 44, 85, 0.2); }
-        input { background: #222; border: 1px solid #333; color: white; padding: 12px; width: 80%; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        button { background: #fe2c55; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        .tt-logo { font-size: 40px; margin-bottom: 10px; }
+        body { background: #000; color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #111; padding: 40px; border-radius: 24px; border: 1px solid #fe2c55; text-align: center; box-shadow: 0 0 30px rgba(254, 44, 85, 0.15); width: 320px; }
+        input { background: #222; border: 1px solid #333; color: white; padding: 12px; width: 90%; border-radius: 10px; margin: 20px 0; text-align: center; font-size: 18px; outline: none; }
+        input:focus { border-color: #25f4ee; }
+        button { background: #fe2c55; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #ef2950; transform: scale(1.02); }
+        .logo { font-size: 50px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <div class="tt-logo">🎵</div>
-        <h2>TIKTOK <span style="color:#fe2c55">PRO</span></h2>
-        <p style="color: #666; font-size: 12px;">INGRESA LA CLAVE IMPERIAL</p>
-        <input type="password" id="pass" placeholder="••••">
-        <button onclick="checkPass()">ENTRAR AL SISTEMA</button>
+    <div class="card">
+        <div class="logo">🎵</div>
+        <h2 style="margin:0">TIKTOK <span style="color:#25f4ee">PRO</span></h2>
+        <p style="color:#666; font-size: 12px;">MODO IMPERIAL ACTIVADO</p>
+        <input type="password" id="pw" placeholder="CONTRASEÑA">
+        <button onclick="auth()">ACCEDER AL MOTOR</button>
     </div>
-
     <script>
-        async function checkPass() {
-            const pass = document.getElementById('pass').value;
-            const res = await fetch("/login", {
-                method: "POST",
-                body: new URLSearchParams({'password': pass})
-            });
-            if (res.ok) location.reload();
-            else alert("Acceso Denegado");
+        async function auth() {
+            const fd = new FormData(); fd.append("password", document.getElementById('pw').value);
+            const res = await fetch("/login", { method: "POST", body: fd });
+            if (res.ok) location.reload(); else alert("CLAVE INCORRECTA");
         }
     </script>
 </body>
