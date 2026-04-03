@@ -1,47 +1,35 @@
-<div class="glass-container">
-    <h1>MALLY<span class="highlight">CUTS PRO</span></h1>
-    
-    <div id="upload-box">
-        <div class="settings-row">
-            <select id="time-select" class="pro-input">
-                <option value="60">Cortes de 1 Minuto</option>
-                <option value="300">Cortes de 5 Minutos</option>
-                <option value="600">Cortes de 10 Minutos</option>
-            </select>
-            <label class="switch-label">
-                <input type="checkbox" id="silent-mode"> 🤫 Modo Silencio
-            </label>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MallyCuts Pro</title>
+    <style> ... </style> 
+</head>
+<body>
+    <div class="glass-container">
+        <h1>MALLY<span class="highlight">CUTS PRO</span></h1>
+        
+        <div id="upload-box">
+            <div class="settings-row">
+                <select id="time-select" class="pro-input">
+                    <option value="60">Cortes de 1 Minuto</option>
+                    <option value="300">Cortes de 5 Minutos</option>
+                </select>
+                <label style="font-size: 14px;">
+                    <input type="checkbox" id="silent-mode"> 🤫 Silencio
+                </label>
+            </div>
+
+            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+                <input type="file" id="video-input" hidden onchange="iniciarSistema()">
+                <div class="icon">⚡</div>
+                <p>SUBIR VIDEO MAESTRO</p>
+            </div>
         </div>
 
-        <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-            <input type="file" id="video-input" hidden onchange="iniciarSistema()">
-            <div class="icon">⚡</div>
-            <p>SUBIR VIDEO MAESTRO</p>
+        <div id="status-pro" style="display:none;">
+            <div class="pro-loader"></div>
+            <p id="msg-pro">PROCESANDO SECUENCIA...</p>
         </div>
     </div>
-    </div>
-
-<script>
-async function iniciarSistema() {
-    const file = document.getElementById('video-input').files[0];
-    const time = document.getElementById('time-select').value;
-    const silent = document.getElementById('silent-mode').checked;
-    
-    if (!file) return;
-
-    // Cambiar vista a cargando
-    document.getElementById('upload-box').style.display = 'none';
-    document.getElementById('status-pro').style.display = 'block';
-
-    let formData = new FormData();
-    formData.append("video", file);
-    formData.append("seconds", time);
-    formData.append("silent", silent);
-
-    const res = await fetch("/api/upload_pro", { method: "POST", body: formData });
-    const data = await res.json();
-    if (data.status === "success") {
-        document.getElementById('msg-pro').innerHTML = "¡SISTEMA EN MARCHA!<br>Revisa Telegram.";
-    }
-}
-</script>
+</body>
+</html>
