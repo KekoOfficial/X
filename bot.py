@@ -1,4 +1,4 @@
-import os, uuid, subprocess, requests, time
+import os, uuid, subprocess, requests, time, threading
 from flask import Flask, request, render_template, jsonify
 from concurrent.futures import ThreadPoolExecutor
 from config import *
@@ -6,18 +6,34 @@ from logger import Logger
 
 app = Flask(__name__)
 log = Logger()
-# Aumentamos los hilos para procesar la subida mientras se corta el siguiente
-executor = ThreadPoolExecutor(max_workers=8) 
+# Aumentamos a 10 hilos para permitir múltiples subidas simultáneas
+executor = ThreadPoolExecutor(max_workers=10)
 
-def fast_segmenter(job_id, input_path, filename):
-    """Corta videos de 1 hora en partes de 5 min casi instantáneamente."""
+def upload_worker(p_path, filename, part_num, total, job_id):
+    """Tarea dedicada a subir una parte lo más rápido posible."""
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendVideo"
+    try:
+        with open(p_path, 'rb') as v:
+            res = requests.post(url, data={
+                'chat_id': CHAT_ID,
+                'caption': f"⚡ PARTE {part_num}/{total} | {filename}",
+                'supports_streaming': True
+            }, files={'video': v}, timeout=300)
+        
+        if res.status_code == 200:
+            log.success(f"✅ Enviada parte {part_num}")
+        os.remove(p_path)
+    except Exception as e:
+        log.error(f"❌ Error subiendo parte {part_num}: {e}")
+
+def turbo_engine(input_path, filename):
+    """Motor de segmentación reactiva."""
     base = os.path.splitext(filename)[0]
-    # Usamos un patrón de salida que FFmpeg reconoce para numerar partes
+    # El comando genera partes y las numera
     output_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_part_%03d.mp4")
     
     try:
-        # COMANDO PRO: Copy de streams + FastStart + Segmentación de 300s
-        # Esto no recodifica, por lo que es la velocidad máxima física del disco.
+        # 1. Corte ultra rápido (Stream Copy)
         cmd = [
             "ffmpeg", "-y", "-i", input_path,
             "-c", "copy", "-map", "0",
@@ -26,34 +42,24 @@ def fast_segmenter(job_id, input_path, filename):
             "-segment_format_options", "movflags=+faststart",
             output_pattern
         ]
-        
         subprocess.run(cmd, capture_output=True, check=True)
-        
-        # Obtener lista de partes generadas
+
+        # 2. Detectar partes y lanzar subidas en paralelo inmediatamente
         parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base)])
         total = len(parts)
-
+        
+        log.info(f"🚀 Lanzando subida de {total} partes en paralelo...")
+        
         for i, p_name in enumerate(parts, 1):
             p_path = os.path.join(DOWNLOAD_FOLDER, p_name)
-            
-            # Subida directa a Telegram
-            with open(p_path, 'rb') as v:
-                requests.post(
-                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendVideo",
-                    data={
-                        'chat_id': CHAT_ID,
-                        'caption': f"🎬 {filename}\n📦 Parte {i}/{total}\n⚡ MallyCuts Pro",
-                        'supports_streaming': True
-                    },
-                    files={'video': v}, timeout=300
-                )
-            os.remove(p_path) # Limpieza inmediata para ahorrar espacio en Termux
+            # Lanzamos cada parte a un hilo diferente para no esperar
+            executor.submit(upload_worker, p_path, filename, i, total, "TURBO")
 
+        # Limpiar original
         if os.path.exists(input_path): os.remove(input_path)
-        log.success(f"✅ Sistema Pro: {filename} enviado en {total} partes.")
 
     except Exception as e:
-        log.error(f"❌ Error en Motor Pro: {e}")
+        log.error(f"🔥 Fallo en el motor Turbo: {e}")
 
 @app.route("/")
 def index():
@@ -68,10 +74,10 @@ def upload_pro():
     path = os.path.join(UPLOAD_FOLDER, f"{f_id}_{file.filename}")
     file.save(path)
 
-    # Disparar el motor inmediatamente sin preguntar nada
-    executor.submit(fast_segmenter, f_id, path, file.filename)
+    # Iniciar motor en segundo plano
+    executor.submit(turbo_engine, path, file.filename)
     
-    return jsonify({"status": "success", "job_id": f_id})
+    return jsonify({"status": "success"})
 
 if __name__ == "__main__":
     init_folders()
