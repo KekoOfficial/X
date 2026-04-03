@@ -1,59 +1,47 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MallyCuts Pro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Estilo Pro rápido */
-        .pro-loader { border: 4px solid rgba(0,242,255,0.1); border-top: 4px solid #00f2ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-    <div class="glass-container">
-        <h1>MALLY<span class="highlight">CUTS PRO</span></h1>
-        <p>Corte automático de 5 min habilitado.</p>
-        
-        <div id="upload-box">
-            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden onchange="iniciarSistema()">
-                <div class="icon">⚡</div>
-                <p>SUBIR VIDEO MAESTRO</p>
-            </div>
+<div class="glass-container">
+    <h1>MALLY<span class="highlight">CUTS PRO</span></h1>
+    
+    <div id="upload-box">
+        <div class="settings-row">
+            <select id="time-select" class="pro-input">
+                <option value="60">Cortes de 1 Minuto</option>
+                <option value="300">Cortes de 5 Minutos</option>
+                <option value="600">Cortes de 10 Minutos</option>
+            </select>
+            <label class="switch-label">
+                <input type="checkbox" id="silent-mode"> 🤫 Modo Silencio
+            </label>
         </div>
 
-        <div id="status-pro" style="display:none;">
-            <div class="pro-loader" id="loader"></div>
-            <p id="msg-pro">SUBIENDO AL SERVIDOR...</p>
-            <p style="font-size: 12px; color: #777;">El bot enviará las partes de 5 min a Telegram automáticamente.</p>
+        <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+            <input type="file" id="video-input" hidden onchange="iniciarSistema()">
+            <div class="icon">⚡</div>
+            <p>SUBIR VIDEO MAESTRO</p>
         </div>
     </div>
+    </div>
 
-    <script>
-        async function iniciarSistema() {
-            const file = document.getElementById('video-input').files[0];
-            if (!file) return;
+<script>
+async function iniciarSistema() {
+    const file = document.getElementById('video-input').files[0];
+    const time = document.getElementById('time-select').value;
+    const silent = document.getElementById('silent-mode').checked;
+    
+    if (!file) return;
 
-            document.getElementById('upload-box').style.display = 'none';
-            document.getElementById('status-pro').style.display = 'block';
-            document.getElementById('loader').style.display = 'block';
+    // Cambiar vista a cargando
+    document.getElementById('upload-box').style.display = 'none';
+    document.getElementById('status-pro').style.display = 'block';
 
-            let formData = new FormData();
-            formData.append("video", file);
+    let formData = new FormData();
+    formData.append("video", file);
+    formData.append("seconds", time);
+    formData.append("silent", silent);
 
-            try {
-                const res = await fetch("/api/upload_pro", { method: "POST", body: formData });
-                const data = await res.json();
-                if (data.status === "success") {
-                    document.getElementById('msg-pro').innerHTML = "<span style='color:#00f2ff;'>¡SISTEMA EN MARCHA!</span><br>Revisa tu Telegram.";
-                    document.getElementById('loader').style.display = 'none';
-                }
-            } catch (e) {
-                alert("Error crítico en la conexión Pro.");
-            }
-        }
-    </script>
-</body>
-</html>
+    const res = await fetch("/api/upload_pro", { method: "POST", body: formData });
+    const data = await res.json();
+    if (data.status === "success") {
+        document.getElementById('msg-pro').innerHTML = "¡SISTEMA EN MARCHA!<br>Revisa Telegram.";
+    }
+}
+</script>
