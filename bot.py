@@ -37,7 +37,7 @@ def turbo_engine(input_path, filename):
         cmd = [
             "ffmpeg", "-y", "-i", input_path,
             "-c", "copy", "-map", "0",
-            "-f", "segment", "-segment_time", "300",
+            "-f", "segment", "-segment_time", "60",
             "-reset_timestamps", "1",
             "-segment_format_options", "movflags=+faststart",
             output_pattern
