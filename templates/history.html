@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>MallyCuts | Historial</title>
+</head>
+<body>
+    <div class="glass-container">
+        <h2>📜 HISTORIAL <span class="highlight">IMPERIAL</span></h2>
+        <div class="history-list">
+            {% for job in jobs %}
+            <div class="job-card">
+                <span>{{ job.filename[:20] }}...</span>
+                <span class="badge {{ job.status }}">{{ job.status }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/" class="btn-primary" style="text-decoration:none; display:block; margin-top:20px;">VOLVER</a>
+    </div>
+</body>
+</html>
