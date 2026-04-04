@@ -7,8 +7,8 @@ from logger import Logger
 
 app = Flask(__name__)
 log = Logger()
-# 20 hilos para que la web siempre responda instantáneamente
-executor = ThreadPoolExecutor(max_workers=20)
+# 30 hilos para manejar peticiones web y ráfagas de bot simultáneamente
+executor = ThreadPoolExecutor(max_workers=30)
 status_queue = queue.Queue()
 
 @app.route("/")
@@ -23,6 +23,7 @@ def settings_page():
 def stream_status():
     def event_stream():
         while True:
+            # Escucha la cola y envía el mensaje al HTML al instante
             msg = status_queue.get()
             yield f"data: {msg}\n\n"
     return Response(event_stream(), mimetype="text/event-stream")
@@ -40,16 +41,16 @@ def upload():
     file = request.files.get("video")
     if not file: return jsonify({"status": "error"}), 400
     
-    # Nombre de archivo optimizado
+    # Nombre de archivo único y corto para evitar errores de lectura
     ext = os.path.splitext(file.filename)[1]
-    tmp_name = f"NITRO_{uuid.uuid4().hex[:4]}{ext}"
-    path = os.path.join("uploads", tmp_name)
+    path = os.path.join("uploads", f"N_{uuid.uuid4().hex[:4]}{ext}")
     file.save(path)
     
-    # Lanzar motor NITRO en segundo plano
+    # Lanzar motor NITRO pasando la cola de estados
     executor.submit(start_mally_engine, path, file.filename, status_queue)
     return jsonify({"status": "success"})
 
 if __name__ == "__main__":
     init_nexus()
+    # Importante: threaded=True para que el monitor no se trabe
     app.run(host="0.0.0.0", port=8000, debug=False, threaded=True)
