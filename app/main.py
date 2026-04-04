@@ -1,50 +1,53 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, Response, request, jsonify
 import os, uuid, queue
 from concurrent.futures import ThreadPoolExecutor
-from config.database import db
-from app.services.bot_service import run_mally_engine
+from app.services.bot_service import run_video_engine
+from dotenv import load_dotenv
+
+load_dotenv() # Carga BOT_TOKEN y CHAT_ID desde .env
 
 app = Flask(__name__, 
             template_folder='../templates', 
             static_folder='../static')
 
-executor = ThreadPoolExecutor(max_workers=20)
+executor = ThreadPoolExecutor(max_workers=10)
 status_queue = queue.Queue()
 
-# --- RUTAS DE NAVEGACIÓN ---
+# --- RUTAS DE NAVEGACIÓN (MALLYWEAR / MALLYCUTS) ---
 @app.route("/")
-def home(): return render_template("upload.html")
+def index(): return render_template("index.html")
 
-@app.route("/settings")
-def settings(): return render_template("settings.html")
+@app.route("/shop")
+def shop(): return render_template("shop.html")
 
-@app.route("/history")
-def history(): return render_template("history.html")
+@app.route("/product")
+def product(): return render_template("product.html")
 
-@app.route("/progress")
-def progress(): return render_template("progress.html")
+@app.route("/contact")
+def contact(): return render_template("contact.html")
 
-# --- API ---
+@app.route("/about")
+def about(): return render_template("about.html")
+
+# --- API DE PROCESAMIENTO ---
 @app.route("/api/status")
-def stream():
-    def event():
+def status_stream():
+    def event_stream():
         while True:
             yield f"data: {status_queue.get()}\n\n"
-    return Response(event(), mimetype="text/event-stream")
+    return Response(event_stream(), mimetype="text/event-stream")
 
-@app.route("/api/save_settings", methods=["POST"])
-def save_db():
-    db.save_config(request.json)
-    return jsonify({"status": "success"})
-
-@app.route("/api/upload_mally", methods=["POST"])
-def handle_upload():
+@app.route("/api/upload", methods=["POST"])
+def upload_video():
     file = request.files.get("video")
-    temp_path = os.path.join("uploads", f"{uuid.uuid4().hex}.mp4")
-    file.save(temp_path)
+    if not file: return jsonify({"error": "No file"}), 400
     
-    # Inicia el proceso en segundo plano
-    executor.submit(run_mally_engine, temp_path, file.filename, status_queue)
+    save_path = os.path.join("uploads", f"{uuid.uuid4().hex}.mp4")
+    file.save(save_path)
+    
+    # Lanza el bot en segundo plano
+    executor.submit(run_video_engine, save_path, file.filename, status_queue, 
+                    os.getenv("BOT_TOKEN"), os.getenv("CHAT_ID"))
     return jsonify({"status": "success"})
 
 if __name__ == "__main__":
