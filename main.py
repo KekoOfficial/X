@@ -3,10 +3,8 @@ from flask import Flask, render_template, request, jsonify, Response
 from concurrent.futures import ThreadPoolExecutor
 from data import db
 from bot import start_mally_engine
-from logger import Logger
 
 app = Flask(__name__)
-log = Logger()
 executor = ThreadPoolExecutor(max_workers=50)
 status_queue = queue.Queue()
 
@@ -20,13 +18,13 @@ def settings_page(): return render_template("settings.html")
 def stream_status():
     def event_stream():
         while True:
-            yield f"data: {status_queue.get()}\n\n"
+            msg = status_queue.get() # Espera infinita sin bloquear el servidor
+            yield f"data: {msg}\n\n"
     return Response(event_stream(), mimetype="text/event-stream")
 
 @app.route("/api/save_settings", methods=["POST"])
 def save_settings():
     db.save(request.json)
-    log.info("Configuración actualizada en NexusDB")
     return jsonify({"status": "success"})
 
 @app.route("/api/upload_mally", methods=["POST"])
@@ -34,10 +32,8 @@ def upload():
     file = request.files.get("video")
     if not file: return jsonify({"status": "error"}), 400
     
-    path = os.path.join("uploads", f"ENT_{uuid.uuid4().hex[:4]}.mp4")
-    os.makedirs("uploads", exist_ok=True)
+    path = os.path.join("uploads", f"M_{uuid.uuid4().hex[:4]}.mp4")
     file.save(path)
-    
     executor.submit(start_mally_engine, path, file.filename, status_queue)
     return jsonify({"status": "success"})
 
