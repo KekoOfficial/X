@@ -2,57 +2,36 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MALLY NEXUS v13</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}?v=13.1">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
 </head>
 <body>
-
     <div class="glass-container">
-        <div class="settings-wrapper">
-            <a href="/settings" class="nexus-btn">⚙️ CONFIGURACIÓN NEXUS</a>
-        </div>
-
-        <header>
-            <h1 class="main-title">MALLY <span class="cyan-glow">CUTS v13</span></h1>
-            <p class="brand-tag">BY KHASSAMX DEV</p>
-        </header>
+        <a href="/settings" class="nexus-btn">⚙️ CONFIGURACIÓN NEXUS</a>
+        <h1 style="margin-top:20px;">MALLY <span style="color:#00f2ff;">CUTS v13</span></h1>
+        <p style="font-size:9px; color:#444; letter-spacing:3px;">KHASSAMX DEV</p>
         
-        <div id="mally-ui">
+        <div id="ui-main">
             <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden accept="video/*" onchange="startMally()">
-                <div class="bolt-icon">⚡</div>
-                <p class="upload-text">SUBIR VIDEO MAESTRO</p>
-                <p class="info-tag">CORTES AUTOMÁTICOS DE 1 MIN</p>
+                <input type="file" id="video-input" hidden onchange="start()">
+                <div style="font-size:40px; color:#ffcc00;">⚡</div>
+                <p>SUBIR VIDEO MAESTRO</p>
             </div>
         </div>
-
-        <div id="loader-ui" style="display: none;">
-            <div class="cyber-spinner"></div>
-            <p class="status-msg">FRAGMENTANDO SERIE...</p>
-            <p class="dest-tag">DESTINO: @MALLYSERIES</p>
+        <div id="ui-loader" style="display:none;">
+            <div class="spinner"></div>
+            <p>FRAGMENTANDO SERIE...</p>
         </div>
     </div>
-
     <script>
-        async function startMally() {
-            const input = document.getElementById('video-input');
-            if (!input.files[0]) return;
-
-            document.getElementById('mally-ui').style.display = 'none';
-            document.getElementById('loader-ui').style.display = 'block';
-
-            const fd = new FormData();
-            fd.append("video", input.files[0]);
-
-            try {
-                const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
-                if (res.ok) {
-                    alert("🚀 PROCESO INICIADO EN CONSOLA");
-                    window.location.reload();
-                }
-            } catch (e) { alert("❌ ERROR DE CONEXIÓN"); }
+        async function start() {
+            const file = document.getElementById('video-input').files[0];
+            document.getElementById('ui-main').style.display='none';
+            document.getElementById('ui-loader').style.display='block';
+            const fd = new FormData(); fd.append("video", file);
+            await fetch("/api/upload_mally", { method: "POST", body: fd });
+            alert("🔥 MOTOR INICIADO"); window.location.reload();
         }
     </script>
 </body>
