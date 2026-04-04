@@ -7,8 +7,9 @@ from logger import Logger
 
 app = Flask(__name__)
 log = Logger()
-executor = ThreadPoolExecutor(max_workers=10)
-status_queue = queue.Queue() # Cola para mensajes en tiempo real
+# 20 hilos para que la web siempre responda instantáneamente
+executor = ThreadPoolExecutor(max_workers=20)
+status_queue = queue.Queue()
 
 @app.route("/")
 def index():
@@ -38,9 +39,14 @@ def save_settings():
 def upload():
     file = request.files.get("video")
     if not file: return jsonify({"status": "error"}), 400
-    path = os.path.join("uploads", f"V14_{uuid.uuid4().hex[:5]}_{file.filename}")
+    
+    # Nombre de archivo optimizado
+    ext = os.path.splitext(file.filename)[1]
+    tmp_name = f"NITRO_{uuid.uuid4().hex[:4]}{ext}"
+    path = os.path.join("uploads", tmp_name)
     file.save(path)
-    # Enviamos el trabajo al motor
+    
+    # Lanzar motor NITRO en segundo plano
     executor.submit(start_mally_engine, path, file.filename, status_queue)
     return jsonify({"status": "success"})
 
