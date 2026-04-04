@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar"><a href="/"><< VOLVER</a> <span>CONTROL DE FRAGMENTACIÓN</span></div>
+    <div class="container">
+        <div class="box">
+            <h1 id="status">ESTADO: LISTO</h1>
+            <p>> PROCESANDO: <span style="color:var(--neon)">{{ video_path }}</span></p>
+            
+            <label>FRAGMENTOS DE (SEG):</label>
+            <input type="number" id="seg" value="60">
+            
+            <button class="btn-mally" onclick="startCut()">EJECUTAR CORTE V10</button>
+        </div>
+    </div>
+
+    <script>
+        async function startCut() {
+            const status = document.getElementById('status');
+            status.innerText = "ESTADO: PROCESANDO...";
+            status.style.color = "yellow";
+
+            const res = await fetch('/api/cut', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    path: "{{ video_path }}",
+                    seconds: document.getElementById('seg').value
+                })
+            });
+            const data = await res.json();
+            if(data.status === 'success') {
+                status.innerText = "ESTADO: ¡COMPLETADO!";
+                status.style.color = "#00ff41";
+                alert("Fragmentos creados en: " + data.folder);
+            }
+        }
+    </script>
+</body>
+</html>
