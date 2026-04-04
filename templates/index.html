@@ -3,50 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY CUTS v18.5 | ONE-TAP</title>
+    <title>MALLY CUTS | INSTANT-FIRE</title>
     <style>
         :root { --neon: #00ff41; --bg: #050505; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .main-panel { border: 2px solid var(--neon); padding: 50px; background: #0a0a0a; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,255,65,0.2); }
-        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); letter-spacing: 5px; margin-bottom: 40px; }
-        .btn-mally { 
-            background: var(--neon); color: #000; border: none; padding: 25px; width: 100%; 
-            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1.2rem;
-            transition: 0.3s;
-        }
-        .btn-mally:active { transform: scale(0.95); background: #fff; }
-        #loader { display: none; margin-top: 30px; }
-        .spinner { border: 4px solid #111; border-top: 4px solid var(--neon); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
-        .status-text { color: var(--neon); font-size: 0.8rem; margin-top: 15px; animation: blink 1s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .panel { border: 2px solid var(--neon); padding: 40px; background: #0a0a0a; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 20px var(--neon); }
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); margin-bottom: 20px; }
+        input { background: #000; border: 1px solid var(--neon); color: #fff; padding: 15px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
+        .btn-fire { background: var(--neon); color: #000; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        #status { margin-top: 20px; color: var(--neon); display: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <div class="main-panel">
-        <h1>MALLY CUTS</h1>
+    <div class="panel">
+        <h1>MASTER VIDEO</h1>
+        <p style="font-size: 0.6rem; color: #666;">> NOMBRE DEL VIDEO EN /media/raw/</p>
         
-        <form id="engine-form" action="/api/auto-process" method="POST" enctype="multipart/form-data">
-            <input type="file" name="video_file" id="video-input" accept="video/*" style="display: none;" onchange="fireEngine()">
-            <button type="button" class="btn-mally" id="main-button" onclick="document.getElementById('video-input').click()">
-                🎬 SELECCIONAR Y CORTAR
-            </button>
-        </form>
+        <input type="text" id="video-name" placeholder="maestro.mp4" required>
+        <button class="btn-fire" onclick="fireNow()">🔥 DISPARAR MOTOR</button>
 
-        <div id="loader">
-            <div class="spinner"></div>
-            <div class="status-text">MOTOR V10: FRAGMENTANDO EN PARTES DE 60s...<br>NO CIERRES ESTA VENTANA</div>
-        </div>
+        <div id="status">🚀 MOTOR V10 EN MARCHA... <br>REVISA TU CANAL DE TELEGRAM</div>
     </div>
 
     <script>
-        function fireEngine() {
-            const input = document.getElementById('video-input');
-            if (input.files.length > 0) {
-                document.getElementById('main-button').style.display = 'none';
-                document.getElementById('loader').style.display = 'block';
-                document.getElementById('engine-form').submit();
-            }
+        function fireNow() {
+            const name = document.getElementById('video-name').value;
+            if(!name) return alert("Escribe el nombre del archivo");
+            
+            document.getElementById('status').style.display = 'block';
+            fetch('/api/direct-fire', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({filename: name})
+            });
         }
     </script>
 </body>
