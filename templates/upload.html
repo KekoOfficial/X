@@ -3,71 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY NEXUS v13</title>
+    <title>MALLY NEXUS | CONSOLA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
 </head>
 <body>
 
-    <button class="settings-btn" onclick="openNexus()">⚙️ Ajustes Nexus</button>
+    <a href="/settings" class="nexus-btn-settings">⚙️ CONFIGURACIÓN NEXUS</a>
 
     <div class="glass-container">
-        <h1>MALLY <span class="highlight">CUTS v13</span></h1>
-        <p style="font-size: 11px; color: #444; letter-spacing: 2px;">CONSOLA KHASSAMX DEV</p>
+        <header>
+            <h1>MALLY <span class="highlight">CUTS v13</span></h1>
+            <p class="brand">KHASSAMX DEV EDITION</p>
+        </header>
         
-        <div id="main-ui">
-            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden onchange="processMally()">
-                <span style="font-size: 40px;">⚡</span>
-                <p>SUBIR VIDEO MAESTRO</p>
+        <main id="ui-container">
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('video-input').click()">
+                <input type="file" id="video-input" hidden accept="video/*" onchange="iniciarProceso()">
+                <div class="icon-pulse">⚡</div>
+                <p>SOLTAR VIDEO MAESTRO</p>
+                <small>Formatos: MP4, MKV, MOV</small>
             </div>
-        </div>
+        </main>
 
-        <div id="loader-ui" style="display:none;">
-            <p class="highlight">FRAGMENTANDO...</p>
-            <small>Revisa tu canal Mally Series</small>
-        </div>
-    </div>
-
-    <div id="nexus-modal" class="modal-overlay">
-        <div class="settings-card">
-            <h3>⚙️ CONFIGURACIÓN PRIVADA</h3>
-            <input type="text" id="bot-token" placeholder="BOT TOKEN">
-            <input type="text" id="chat-id" placeholder="ID CANAL/GRUPO">
-            <button class="save-btn" onclick="saveNexus()">GUARDAR CAMBIOS</button>
-            <button class="close-btn" onclick="closeNexus()">CERRAR PANEL</button>
+        <div id="status-console" style="display: none;">
+            <div class="loader"></div>
+            <p class="status-text">FRAGMENTANDO SERIE...</p>
+            <p class="target-info">Destino: @MallySeries</p>
         </div>
     </div>
 
     <script>
-        function openNexus() { document.getElementById('nexus-modal').style.display = 'flex'; }
-        function closeNexus() { document.getElementById('nexus-modal').style.display = 'none'; }
+        async function iniciarProceso() {
+            const input = document.getElementById('video-input');
+            if (input.files.length === 0) return;
 
-        async function saveNexus() {
-            const data = {
-                bot_token: document.getElementById('bot-token').value,
-                chat_id: document.getElementById('chat-id').value
-            };
-            const res = await fetch("/api/save_settings", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
-            });
-            if(res.ok) { alert("Base de Datos Actualizada"); closeNexus(); }
-        }
+            const file = input.files[0];
+            const ui = document.getElementById('ui-container');
+            const console = document.getElementById('status-console');
 
-        async function processMally() {
-            const file = document.getElementById('video-input').files[0];
-            if(!file) return;
+            // Cambio visual a modo "Procesando"
+            ui.style.display = 'none';
+            console.style.display = 'block';
 
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('loader-ui').style.display = 'block';
+            const formData = new FormData();
+            formData.append("video", file);
 
-            const fd = new FormData();
-            fd.append("video", file);
+            try {
+                const response = await fetch("/api/upload_mally", {
+                    method: "POST",
+                    body: formData
+                });
 
-            const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
-            if(res.ok) alert("Mally Engine Iniciado");
+                if (response.ok) {
+                    alert("🔥 Motor Mally v13 Iniciado con éxito.\nRevisa el canal @MallySeries.");
+                    // Resetear para nueva subida
+                    window.location.reload();
+                } else {
+                    alert("❌ Error en la Consola. Revisa los Logs.");
+                }
+            } catch (error) {
+                alert("❌ Fallo de conexión con el servidor.");
+            }
         }
     </script>
 </body>
