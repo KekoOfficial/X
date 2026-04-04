@@ -1,78 +1,45 @@
-import subprocess, requests, os
+import subprocess, requests, os, time
 from config import get_nexus_settings, DOWNLOAD_FOLDER
-from concurrent.futures import ThreadPoolExecutor
 
 def start_mally_engine(path, filename, s_queue):
     settings = get_nexus_settings()
     token, cid = settings.get("bot_token"), settings.get("chat_id")
     
-    if not token or not cid:
-        s_queue.put("❌ CONFIGURACIÓN INCOMPLETA")
-        return
+    base_name = os.path.splitext(filename)[0].upper()
+    out_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base_name}_%03d.mp4")
 
-    # Formatear título imperial
-    base_title = os.path.splitext(filename)[0].replace("_", " ").upper()
-    out_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base_title}_%03d.mp4")
+    s_queue.put(f"🎬 NITRO-CUT: {base_name}")
 
-    # Notificar a la Web
-    s_queue.put(f"⚡ NITRO-CUT: {base_title}")
-
-    # FFmpeg optimizado para fragmentar sin procesar (Instantáneo)
+    # Corte FFmpeg Ultra-Rápido
     subprocess.run([
-        "ffmpeg", "-y", "-i", path, 
-        "-c", "copy", "-f", "segment", "-segment_time", "60", 
-        "-reset_timestamps", "1", out_pattern
+        "ffmpeg", "-y", "-i", path, "-c", "copy", "-f", "segment", 
+        "-segment_time", "60", "-reset_timestamps", "1", out_pattern
     ], capture_output=True)
 
-    # Identificar fragmentos creados
+    # Listar y ORDENAR estrictamente
     parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base_title)])
     total = len(parts)
 
-    if total == 0:
-        s_queue.put("❌ ERROR: FFmpeg no generó archivos")
-        return
-
-    s_queue.put(f"🚀 ENVIANDO {total} PARTES EN RÁFAGA...")
-
-    # Función de envío atómico
-    def send_burst(data):
-        i, p_name = data
+    for i, p_name in enumerate(parts, 1):
         p_path = os.path.join(DOWNLOAD_FOLDER, p_name)
-        
+        s_queue.put(f"📤 Enviando Parte {i} de {total}...")
+
         caption = (
-            f"🎬 **PELÍCULA:** {base_title}\n"
-            f"📦 **PARTE:** {i} de {total}\n"
+            f"🎬 **PELÍCULA:** {base_name}\n"
+            f"📦 **PARTE:** {i}/{total}\n"
             f"👤 **CREADOR:** Noa\n"
             f"────────────────────\n"
-            f"📸 **Instagram:** @MallySeries\n"
-            f"🎵 **TikTok:** @Esenaen15\n"
-            f"📢 **Telegram:** @MallySeries\n"
-            f"────────────────────\n"
-            f"👑 **NITRO v14.5**"
+            f"📢 @MallySeries | 👑 NITRO v14.5"
         )
 
-        try:
-            with open(p_path, 'rb') as v:
-                requests.post(
-                    f"https://api.telegram.org/bot{token}/sendVideo", 
-                    data={
-                        'chat_id': cid, 
-                        'caption': caption, 
-                        'parse_mode': 'Markdown',
-                        'supports_streaming': True
-                    }, 
-                    files={'video': v},
-                    timeout=60
-                )
-            os.remove(p_path)
-        except Exception as e:
-            print(f"Error en envío de parte {i}: {e}")
+        with open(p_path, 'rb') as v:
+            # Envío secuencial rápido para asegurar orden 1,2,3
+            requests.post(f"https://api.telegram.org/bot{token}/sendVideo", 
+                data={'chat_id': cid, 'caption': caption, 'parse_mode': 'Markdown'}, 
+                files={'video': v})
+        
+        os.remove(p_path)
+        time.sleep(0.5) # Pausa mínima para que Telegram no mezcle el orden
 
-    # Envío paralelo controlado (3 hilos simultáneos)
-    with ThreadPoolExecutor(max_workers=3) as nitro_executor:
-        nitro_executor.map(send_burst, enumerate(parts, 1))
-
-    s_queue.put("✅ RÁFAGA COMPLETADA")
-    
-    # Limpiar video maestro
+    s_queue.put("✅ ORDEN COMPLETADO")
     if os.path.exists(path): os.remove(path)
