@@ -1,0 +1,13 @@
+:root { --neon: #00ff41; --bg: #050505; --panel: #0a0a0a; }
+body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; }
+
+.navbar { border-bottom: 1px solid var(--neon); padding: 10px 20px; display: flex; justify-content: space-between; }
+.navbar a { color: var(--neon); text-decoration: none; font-size: 0.8rem; }
+
+.container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
+.box { border: 2px solid var(--neon); padding: 30px; background: var(--panel); box-shadow: 0 0 20px rgba(0,255,65,0.2); width: 80%; max-width: 600px; }
+
+h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); text-align: center; }
+input { background: #000; border: 1px solid var(--neon); color: #fff; padding: 15px; width: 100%; box-sizing: border-box; margin: 15px 0; }
+.btn-mally { background: var(--neon); color: #000; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+.btn-mally:hover { background: #fff; box-shadow: 0 0 15px #fff; }
