@@ -1,21 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALLY | Historial</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>MallyCuts | Historial</title>
+    <style>
+        .list-item { background: rgba(255,255,255,0.03); margin: 10px 0; padding: 15px; border-radius: 12px; border-left: 3px solid var(--primary); text-align: left; }
+    </style>
 </head>
 <body>
-    <div class="glass-container">
-        <h2>📜 HISTORIAL <span class="highlight">IMPERIAL</span></h2>
-        <div class="history-list">
-            {% for job in jobs %}
-            <div class="job-card">
-                <span>{{ job.filename[:20] }}...</span>
-                <span class="badge {{ job.status }}">{{ job.status }}</span>
+    <div class="glass-container" style="max-width: 500px;">
+        <h1>MALLY <span class="highlight">HISTORY</span></h1>
+        <p class="subtitle">ÚLTIMOS PROCESOS COMPLETADOS</p>
+        
+        <div id="history-list">
+            <div class="list-item">
+                <div style="font-size: 14px; font-weight: bold;">Video_Maestro_01.mp4</div>
+                <div style="font-size: 11px; color: #666;">84 Partes • Telegram Sync</div>
             </div>
-            {% endfor %}
         </div>
-        <a href="/" class="btn-primary" style="text-decoration:none; display:block; margin-top:20px;">VOLVER</a>
+
+        <button onclick="window.location.href='/'" class="pro-button" 
+                style="margin-top: 20px; background: transparent; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%;">
+            VOLVER AL PANEL
+        </button>
     </div>
 </body>
 </html>
