@@ -1,32 +1,31 @@
-import subprocess, requests, os, time
-from config.settings import DOWNLOADS_DIR
+import subprocess
+import os
+from config.ffmpeg_config import FFMPEG_BINARY # Definido en tu carpeta config
 
-def run_video_engine(path, filename, s_queue, token, chat_id):
-    base_name = os.path.splitext(filename)[0].upper().replace("_", " ")
-    s_queue.put(f"🎬 PROCESANDO: {base_name}")
-    
-    # Corte con FFmpeg (Segmentos de 60s)
-    output_pattern = os.path.join(DOWNLOADS_DIR, f"{base_name}_%03d.mp4")
-    subprocess.run([
-        "ffmpeg", "-y", "-i", path, "-c", "copy", "-map", "0", 
-        "-f", "segment", "-segment_time", "60", "-reset_timestamps", "1", output_pattern
-    ], capture_output=True)
+def fast_segment_video(input_path, output_dir, segment_time=60):
+    """
+    Corta videos de hasta 10 horas en segundos.
+    Usa -c copy para evitar renderizado y maximizar velocidad.
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    parts = sorted([f for f in os.listdir(DOWNLOADS_DIR) if f.startswith(base_name)])
-    total = len(parts)
+    # Patrón de salida ordenado: clip_001.mp4, clip_002.mp4...
+    output_pattern = os.path.join(output_dir, "mally_clip_%03d.mp4")
 
-    for i, p_name in enumerate(parts, 1):
-        p_path = os.path.join(DOWNLOADS_DIR, p_name)
-        s_queue.put(f"📤 Enviando {i}/{total}...")
+    command = [
+        'ffmpeg', '-i', input_path,
+        '-c', 'copy', 
+        '-map', '0',
+        '-f', 'segment', 
+        '-segment_time', str(segment_time),
+        '-reset_timestamps', '1',
+        output_pattern
+    ]
 
-        with open(p_path, 'rb') as video_file:
-            requests.post(
-                f"https://api.telegram.org/bot{token}/sendVideo",
-                data={'chat_id': chat_id, 'caption': f"🎬 **{base_name}**\n📦 **PARTE:** {i}/{total}\n👑 **MALLY ENTERPRISE**", 'parse_mode': 'Markdown'},
-                files={'video': video_file}
-            )
-        os.remove(p_path)
-        time.sleep(0.5) # Evita el bloqueo de Telegram
-
-    s_queue.put("✅ TRABAJO COMPLETADO")
-    if os.path.exists(path): os.remove(path)
+    try:
+        subprocess.run(command, check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error en el motor V10: {e.stderr}")
+        return False
