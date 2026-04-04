@@ -1,55 +1,52 @@
 import subprocess, requests, os, time
-from config import get_nexus_settings, DOWNLOAD_FOLDER
+from data import db
+from logger import Logger
+
+log = Logger()
+OUT_DIR = "downloads"
 
 def start_mally_engine(path, filename, s_queue):
-    settings = get_nexus_settings()
-    token, cid = settings.get("bot_token"), settings.get("chat_id")
+    config = db.get()
+    os.makedirs(OUT_DIR, exist_ok=True)
     
-    # Limpiamos el nombre para el branding imperial
-    base_name = os.path.splitext(filename)[0].replace("_", " ").upper()
-    out_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base_name}_%03d.mp4")
+    base = os.path.splitext(filename)[0].replace("_", " ").upper()
+    s_queue.put(f"⚡ PROCESANDO: {base}")
+    log.info(f"Iniciando corte de {filename}")
 
-    s_queue.put(f"⚡ NITRO-CUT: {base_name}")
-
-    # CORTE INSTANTÁNEO (Sin re-codificar para máxima velocidad)
+    # FFmpeg: Corte por segmentos de 60s sin pérdida de calidad
+    out_pattern = os.path.join(OUT_DIR, f"{base}_%03d.mp4")
     subprocess.run([
-        "ffmpeg", "-y", "-i", path, "-c", "copy", "-map", "0", 
-        "-f", "segment", "-segment_time", "60", "-reset_timestamps", "1", 
-        out_pattern
+        "ffmpeg", "-y", "-i", path, "-c", "copy", "-f", "segment", 
+        "-segment_time", "60", "-reset_timestamps", "1", out_pattern
     ], capture_output=True)
 
-    # Ordenamos alfabéticamente para asegurar 001, 002, 003...
-    parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base_name)])
+    # Listar y ordenar alfabéticamente (001, 002, 003...)
+    parts = sorted([f for f in os.listdir(OUT_DIR) if f.startswith(base)])
     total = len(parts)
 
-    s_queue.put(f"🚀 ENVIANDO {total} PARTES...")
-
     for i, p_name in enumerate(parts, 1):
-        p_path = os.path.join(DOWNLOAD_FOLDER, p_name)
-        
-        # Aviso rápido a la web
-        s_queue.put(f"📦 Enviando {i}/{total}")
+        p_path = os.path.join(OUT_DIR, p_name)
+        s_queue.put(f"📤 Enviando {i}/{total}...")
 
         caption = (
-            f"🎬 **PELÍCULA:** {base_name}\n"
+            f"🎬 **{base}**\n"
             f"📦 **PARTE:** {i} de {total}\n"
-            f"👤 **CREADOR:** Noa\n"
+            f"👤 **AUTOR:** Noa\n"
             f"────────────────────\n"
-            f"📢 @MallySeries | 📸 @MallySeries\n"
-            f"👑 **ENTERPRISE v15.2**"
+            f"👑 **MALLY ENTERPRISE v16**"
         )
 
-        with open(p_path, 'rb') as v:
-            # Envío directo. Telegram procesa el orden por tiempo de llegada.
-            requests.post(
-                f"https://api.telegram.org/bot{token}/sendVideo", 
-                data={'chat_id': cid, 'caption': caption, 'parse_mode': 'Markdown', 'supports_streaming': True}, 
-                files={'video': v}
-            )
-        
-        os.remove(p_path)
-        # Pausa mínima de 0.2s para que Telegram no mezcle los mensajes
-        time.sleep(0.2)
+        try:
+            with open(p_path, 'rb') as v:
+                requests.post(
+                    f"https://api.telegram.org/bot{config['bot_token']}/sendVideo",
+                    data={'chat_id': config['chat_id'], 'caption': caption, 'parse_mode': 'Markdown'},
+                    files={'video': v}, timeout=60
+                )
+            os.remove(p_path)
+            time.sleep(0.4) # Blindaje de orden para ráfagas
+        except Exception as e:
+            log.error(f"Fallo en parte {i}: {e}")
 
-    s_queue.put("✅ PROCESO COMPLETADO")
+    s_queue.put("✅ TRABAJO COMPLETADO")
     if os.path.exists(path): os.remove(path)
