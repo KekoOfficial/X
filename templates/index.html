@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar"><span>MALLY CUTS v18</span> <a href="/editor">MODO EDITOR</a></div>
+    <div class="container">
+        <div class="box">
+            <h1>MASTER VIDEO</h1>
+            <p style="font-size: 0.7rem; color: #666;">> ARRASTRA O PEGA LA RUTA DEL VIDEO DE 10 HORAS</p>
+            <form action="/editor" method="GET">
+                <input type="text" name="path" placeholder="/ruta/al/video.mp4" required>
+                <button type="submit" class="btn-mally">INGRESAR AL MOTOR</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
