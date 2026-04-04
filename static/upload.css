@@ -1,15 +1,73 @@
-:root { --cyan: #00f2ff; --bg: #050505; }
-body { background: var(--bg); color: #fff; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-.glass-container { background: #0a0a0a; border: 1px solid #111; padding: 40px 25px; border-radius: 20px; text-align: center; width: 85%; max-width: 380px; box-shadow: 0 0 50px rgba(0,0,0,1); }
-.cyan { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
-.nexus-btn { display: block; margin-bottom: 20px; color: var(--cyan); text-decoration: none; font-size: 10px; border: 1px solid #222; padding: 5px; border-radius: 5px; }
+:root {
+    --cyan: #00f2ff;
+    --bg: #050505;
+    --card: #0a0a0a;
+    --border: #1a1a1a;
+}
 
-/* MONITOR BOX */
-.monitor-box { margin-top: 30px; background: #000; border: 1px solid #1a1a1a; padding: 15px; border-radius: 10px; text-align: left; }
-.mon-header { font-size: 8px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
-.log-text { font-size: 13px; color: var(--cyan); text-shadow: 0 0 5px var(--cyan); margin-bottom: 10px; }
-.progress-bg { height: 3px; background: #111; width: 100%; border-radius: 10px; overflow: hidden; }
-#progress-bar { height: 100%; width: 5%; background: var(--cyan); transition: 0.5s; box-shadow: 0 0 10px var(--cyan); }
+body {
+    background: var(--bg);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
 
-.drop-zone { border: 1px dashed #222; padding: 40px 10px; border-radius: 15px; cursor: pointer; }
+.glass-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 40px rgba(0,0,0,1);
+}
+
+.nexus-btn {
+    display: inline-block;
+    color: var(--cyan);
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 2px;
+    border: 1px solid var(--border);
+    padding: 8px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    transition: 0.3s;
+}
+
+.nexus-btn:hover { background: var(--cyan); color: #000; }
+
+h1 { font-size: 22px; margin-bottom: 5px; }
+.cyan { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+
+/* ZONA DE CARGA */
+.drop-zone {
+    border: 1px dashed #333;
+    padding: 40px 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
 .bolt { font-size: 40px; color: #ffcc00; margin-bottom: 10px; }
+
+/* MONITOR NITRO */
+.monitor-box {
+    margin-top: 25px;
+    background: #000;
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.mon-header { font-size: 8px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
+.log-text { font-size: 13px; color: var(--cyan); margin-bottom: 10px; }
+
+.progress-bg { height: 4px; background: #111; width: 100%; border-radius: 10px; overflow: hidden; }
+#progress-bar { height: 100%; width: 5%; background: var(--cyan); transition: 0.5s; box-shadow: 0 0 10px var(--cyan); }
