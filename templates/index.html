@@ -1,35 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY CUTS v18.5 | NITRO</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALLY CUTS</title>
     <style>
-        :root { --neon: #00ff41; --bg: #050505; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .panel { border: 2px solid var(--neon); padding: 40px; background: #0a0a0a; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 20px var(--neon); }
-        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); margin-bottom: 30px; }
-        .btn-mally { background: var(--neon); color: #000; border: none; padding: 25px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1.1rem; }
-        #loader { display: none; margin-top: 20px; color: var(--neon); }
+        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .btn { border: 2px solid #0f0; background: transparent; color: #0f0; padding: 20px; width: 80%; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        #status { display: none; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="panel">
+    <div style="text-align: center; width: 100%;">
         <h1>MASTER VIDEO</h1>
-        <form id="nitro-form" action="/api/brutal-process" method="POST" enctype="multipart/form-data">
-            <input type="file" name="video_file" id="gallery-picker" accept="video/*" style="display: none;" onchange="ignite()">
-            <button type="button" class="btn-mally" id="fire-btn" onclick="document.getElementById('gallery-picker').click()">
-                🎬 SELECCIONAR Y DISPARAR
-            </button>
+        <form id="f" action="/api/brutal-process" method="POST" enctype="multipart/form-data">
+            <input type="file" name="video_file" id="v" accept="video/*" style="display: none;" onchange="s()">
+            <button type="button" class="btn" id="b" onclick="document.getElementById('v').click()">🎬 SELECCIONAR GALERÍA</button>
         </form>
-        <div id="loader">🚀 PROCESANDO... REVISA TELEGRAM</div>
+        <div id="status">🚀 PROCESANDO... MIRA TELEGRAM</div>
     </div>
     <script>
-        function ignite() {
-            document.getElementById('fire-btn').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('nitro-form').submit();
-        }
+        function s() { document.getElementById('b').style.display='none'; document.getElementById('status').style.display='block'; document.getElementById('f').submit(); }
     </script>
 </body>
 </html>
