@@ -1,39 +1,74 @@
-<div class="glass-container">
-    <div class="settings-trigger" onclick="document.getElementById('mally-modal').style.display='flex'">⚙️ AJUSTES NEXUS</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALLY NEXUS v13</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body>
 
-    <h1>MALLY <span class="highlight">CUTS v13</span></h1>
-    <p class="subtitle">CONSOLA KHASSAMX DEV</p>
-    
-    <div id="upload-ui">
-        <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-            <input type="file" id="video-input" hidden onchange="enviarMally()">
-            <span class="icon">⚡</span>
-            <p>SUBIR VIDEO MAESTRO</p>
+    <button class="settings-btn" onclick="openNexus()">⚙️ Ajustes Nexus</button>
+
+    <div class="glass-container">
+        <h1>MALLY <span class="highlight">CUTS v13</span></h1>
+        <p style="font-size: 11px; color: #444; letter-spacing: 2px;">CONSOLA KHASSAMX DEV</p>
+        
+        <div id="main-ui">
+            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+                <input type="file" id="video-input" hidden onchange="processMally()">
+                <span style="font-size: 40px;">⚡</span>
+                <p>SUBIR VIDEO MAESTRO</p>
+            </div>
+        </div>
+
+        <div id="loader-ui" style="display:none;">
+            <p class="highlight">FRAGMENTANDO...</p>
+            <small>Revisa tu canal Mally Series</small>
         </div>
     </div>
-</div>
 
-<div id="mally-modal" class="modal">
-    <div class="modal-content">
-        <h3>⚙️ CONFIGURACIÓN PRIVADA</h3>
-        <input type="text" id="bot-token" placeholder="PEGA AQUÍ EL TOKEN DEL BOT">
-        <input type="text" id="chat-id" placeholder="ID DEL CANAL O GRUPO">
-        <button onclick="guardarConfig()">GUARDAR EN BASE DE DATOS</button>
-        <button onclick="document.getElementById('mally-modal').style.display='none'" style="background:transparent; border:1px solid #333; margin-top:10px;">CERRAR</button>
+    <div id="nexus-modal" class="modal-overlay">
+        <div class="settings-card">
+            <h3>⚙️ CONFIGURACIÓN PRIVADA</h3>
+            <input type="text" id="bot-token" placeholder="BOT TOKEN">
+            <input type="text" id="chat-id" placeholder="ID CANAL/GRUPO">
+            <button class="save-btn" onclick="saveNexus()">GUARDAR CAMBIOS</button>
+            <button class="close-btn" onclick="closeNexus()">CERRAR PANEL</button>
+        </div>
     </div>
-</div>
 
-<script>
-async function guardarConfig() {
-    const data = {
-        bot_token: document.getElementById('bot-token').value,
-        chat_id: document.getElementById('chat-id').value
-    };
-    const res = await fetch("/api/save_settings", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-    });
-    if(res.ok) alert("Configuración Guardada Correctamente");
-}
-</script>
+    <script>
+        function openNexus() { document.getElementById('nexus-modal').style.display = 'flex'; }
+        function closeNexus() { document.getElementById('nexus-modal').style.display = 'none'; }
+
+        async function saveNexus() {
+            const data = {
+                bot_token: document.getElementById('bot-token').value,
+                chat_id: document.getElementById('chat-id').value
+            };
+            const res = await fetch("/api/save_settings", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+            if(res.ok) { alert("Base de Datos Actualizada"); closeNexus(); }
+        }
+
+        async function processMally() {
+            const file = document.getElementById('video-input').files[0];
+            if(!file) return;
+
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('loader-ui').style.display = 'block';
+
+            const fd = new FormData();
+            fd.append("video", file);
+
+            const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
+            if(res.ok) alert("Mally Engine Iniciado");
+        }
+    </script>
+</body>
+</html>
