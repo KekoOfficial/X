@@ -3,43 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY CUTS v18.5 | HYPER-VELOCITY</title>
+    <title>MALLY CUTS v18.5 | AUTO-LOADER</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        :root { --neon: #00ff41; --purp: #bc13fe; --bg: #050505; --panel: #0a0a0a; }
+        :root { --neon: #00ff41; --purp: #bc13fe; --bg: #050505; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .navbar { border-bottom: 1px solid var(--neon); padding: 10px 20px; display: flex; justify-content: space-between; background: #000; font-size: 0.8rem; }
-        .navbar span { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; }
-        .box { border: 2px solid var(--neon); padding: 40px; background: var(--panel); box-shadow: 0 0 30px rgba(0,255,65,0.15); width: 85%; max-width: 500px; text-align: center; }
-        h1 { color: var(--neon); font-size: 1.8rem; letter-spacing: 4px; margin-bottom: 5px; }
-        .subtitle { font-size: 0.6rem; color: #666; margin-bottom: 25px; display: block; }
-        input { background: #000; border: 1px solid var(--neon); color: #fff; padding: 15px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
-        .btn-mally { background: var(--neon); color: #000; border: none; padding: 16px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        .btn-mally:hover { background: #fff; box-shadow: 0 0 20px #fff; }
-        .btn-gallery { background: var(--purp) !important; margin-top: 12px; }
+        .container { display: flex; align-items: center; justify-content: center; flex-grow: 1; }
+        .box { border: 2px solid var(--neon); padding: 40px; background: #0a0a0a; width: 85%; max-width: 450px; text-align: center; box-shadow: 0 0 25px rgba(0,255,65,0.2); }
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); margin-bottom: 5px; }
+        .subtitle { font-size: 0.7rem; color: #666; margin-bottom: 30px; display: block; }
+        
+        .btn-mally { 
+            background: var(--neon); color: #000; border: none; padding: 20px; width: 100%; 
+            font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-gallery { background: var(--purp) !important; color: #fff !important; }
+        
+        #loading-status { display: none; margin-top: 15px; color: var(--neon); font-size: 0.8rem; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <span>MALLY CUTS v18.5</span>
-        <span style="color: var(--purp);">MODO EDITOR ACTIVE</span>
+        <span style="color: var(--neon);">MALLY CUTS v18.5</span>
+        <span style="color: var(--purp);">AUTO-PILOT ACTIVE</span>
     </div>
 
     <div class="container">
         <div class="box">
             <h1>MASTER VIDEO</h1>
-            <span class="subtitle">> ARRASTRA O PEGA LA RUTA DEL VIDEO DE 10 HORAS</span>
-            
-            <form action="/editor" method="GET">
-                <input type="text" name="path" placeholder="/storage/emulated/0/Movies/maestro.mp4" required>
-                <button type="submit" class="btn-mally">INGRESAR AL MOTOR</button>
+            <span class="subtitle">> TOCA EL BOTÓN PARA ABRIR TU GALERÍA</span>
+
+            <form id="upload-form" action="/api/auto-upload" method="POST" enctype="multipart/form-data">
+                <input type="file" name="video_file" id="video-input" accept="video/*" style="display: none;" onchange="autoSubmit()">
+                
+                <button type="button" class="btn-mally" onclick="document.getElementById('video-input').click()">
+                    🎬 SELECCIONAR DE GALERÍA
+                </button>
             </form>
 
             <button class="btn-mally btn-gallery" onclick="location.href='/gallery'">
-                📂 IR A GALERÍA DE CORTES
+                📂 GALERÍA DE CORTES
             </button>
+
+            <div id="loading-status">CARGANDO VIDEO AL MOTOR...</div>
         </div>
     </div>
+
+    <script>
+        function autoSubmit() {
+            const status = document.getElementById('loading-status');
+            const form = document.getElementById('upload-form');
+            const fileInput = document.getElementById('video-input');
+
+            if (fileInput.files.length > 0) {
+                status.style.display = 'block';
+                form.submit();
+            }
+        }
+    </script>
 </body>
 </html>
