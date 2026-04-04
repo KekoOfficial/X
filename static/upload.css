@@ -1,15 +1,14 @@
 :root {
-    --primary: #00f2ff;
-    --bg: #050505;
-    --card-bg: rgba(15, 15, 20, 0.95);
-    --border-glow: rgba(0, 242, 255, 0.3);
-    --font-main: 'JetBrains Mono', monospace;
+    --cyan: #00f2ff;
+    --dark: #050505;
+    --card: rgba(10, 10, 15, 0.98);
+    --border: rgba(0, 242, 255, 0.2);
 }
 
 body {
-    background-color: var(--bg);
+    background: var(--dark);
     color: #fff;
-    font-family: var(--font-main);
+    font-family: 'JetBrains Mono', monospace;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,104 +17,68 @@ body {
     overflow: hidden;
 }
 
-/* --- EL BOTÓN QUE FALTABA --- */
-.nexus-config-btn {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid var(--border-glow);
-    color: var(--primary);
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 11px;
-    letter-spacing: 2px;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-}
-
-.nexus-config-btn:hover {
-    background: var(--primary);
-    color: #000;
-    box-shadow: 0 0 20px var(--primary);
-}
-
-/* --- CONTENEDOR PRINCIPAL --- */
 .glass-container {
-    background: var(--card-bg);
-    border: 1px solid var(--border-glow);
-    padding: 50px 40px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 35px 25px;
     border-radius: 20px;
     text-align: center;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+    width: 85%;
+    max-width: 380px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 1);
 }
 
-.highlight {
-    color: var(--primary);
-    text-shadow: 0 0 15px var(--primary);
-}
-
-.engine-tag {
-    font-size: 11px;
-    color: #555;
-    letter-spacing: 3px;
+/* --- BOTÓN NEXUS ULTRA VISIBLE --- */
+.settings-wrapper {
     margin-bottom: 30px;
 }
 
-/* --- ZONA DE SUBIDA --- */
-.drop-zone {
-    border: 1px dashed var(--border-glow);
-    border-radius: 15px;
-    padding: 40px 20px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.drop-zone:hover {
-    border-color: var(--primary);
-    background: rgba(0, 242, 255, 0.03);
-}
-
-.bolt-icon {
-    font-size: 40px;
-    color: #ffcc00;
-    margin-bottom: 15px;
-    filter: drop-shadow(0 0 10px #ffcc00);
-}
-
-.auto-tag {
-    font-size: 10px;
-    color: #333;
-    margin-top: 10px;
-}
-
-/* --- FOOTER --- */
-.history-link {
-    color: var(--primary);
-    font-size: 12px;
-    text-decoration: none;
-    opacity: 0.6;
-    margin-top: 30px;
+.nexus-btn {
     display: inline-block;
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    transition: 0.3s;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
 }
 
-.history-link:hover { opacity: 1; }
+.nexus-btn:hover {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 25px var(--cyan);
+}
 
-/* --- LOADER V13 --- */
-.cyber-loader {
-    width: 50px;
-    height: 50px;
+.main-title { font-size: 24px; margin: 0; }
+.cyan-glow { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
+.brand-tag { font-size: 9px; color: #444; letter-spacing: 4px; margin-top: 5px; }
+
+/* --- ZONA DE ACCIÓN --- */
+.drop-zone {
+    border: 1px dashed var(--border);
+    border-radius: 15px;
+    padding: 40px 10px;
+    cursor: pointer;
+    margin-top: 25px;
+}
+
+.bolt-icon { font-size: 45px; color: #ffcc00; filter: drop-shadow(0 0 10px #ffcc00); margin-bottom: 10px; }
+.upload-text { font-size: 14px; font-weight: bold; margin: 10px 0; }
+.info-tag { font-size: 9px; color: #333; }
+
+/* --- LOADER --- */
+.cyber-spinner {
+    width: 40px; height: 40px;
     border: 3px solid rgba(0, 242, 255, 0.1);
-    border-top: 3px solid var(--primary);
+    border-top: 3px solid var(--cyan);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
+    animation: spin 0.8s linear infinite;
+    margin: 20px auto;
 }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
