@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY NITRO v14.5</title>
+    <title>IMPERIO MP v15</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
 </head>
 <body>
     <div class="glass-container">
-        <a href="/settings" class="nexus-btn">⚙️ NEXUS DATABASE</a>
-        <h1>MALLY <span class="cyan">NITRO v14.5</span></h1>
+        <a href="/settings" class="nexus-link">[ ACCEDER A DATABASE ]</a>
+        <h1>MALLY <span class="cyan">CUTS v15</span></h1>
         
         <div id="upload-zone" class="drop-zone" onclick="document.getElementById('file-in').click()">
-            <input type="file" id="file-in" hidden onchange="runNitro()">
+            <input type="file" id="file-in" hidden onchange="startMatrix()">
             <div class="bolt">⚡</div>
-            <p>SUBIR VIDEO MAESTRO</p>
+            <p id="main-text">FRAGMENTAR VIDEO MAESTRO</p>
         </div>
 
         <div id="monitor-box" class="monitor-box" style="display:none;">
-            <div class="mon-header">🛰️ MONITOR DE RÁFAGA</div>
+            <div class="mon-header">🛰️ ANALIZANDO PAQUETES...</div>
             <div id="status-text" class="log-text">Sincronizando...</div>
             <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
@@ -27,25 +27,25 @@
     <script>
         const source = new EventSource("/api/status");
         source.onmessage = (e) => {
-            const monitor = document.getElementById('monitor-box');
+            document.getElementById('monitor-box').style.display = 'block';
             const log = document.getElementById('status-text');
             const bar = document.getElementById('progress-bar');
             
-            monitor.style.display = 'block';
             log.innerText = e.data;
             
-            if(e.data.includes("ENVIANDO")) bar.style.width = "60%";
-            if(e.data.includes("COMPLETADA")) {
+            if(e.data.includes("Part")) bar.style.width = "50%";
+            if(e.data.includes("COMPLETADO")) {
                 bar.style.width = "100%";
                 bar.style.background = "#00ff88";
-                setTimeout(() => window.location.reload(), 3000);
+                setTimeout(() => window.location.reload(), 4000);
             }
         };
 
-        async function runNitro() {
+        async function startMatrix() {
             const file = document.getElementById('file-in').files[0];
             const fd = new FormData(); fd.append("video", file);
-            document.getElementById('upload-zone').style.opacity = '0.3';
+            document.getElementById('main-text').innerText = "SUBIENDO AL SERVIDOR...";
+            document.getElementById('upload-zone').style.borderColor = "#00f2ff";
             await fetch("/api/upload_mally", {method: "POST", body: fd});
         }
     </script>
