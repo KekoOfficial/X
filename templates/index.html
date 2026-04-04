@@ -2,24 +2,151 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MALLY ENTERPRISE | Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALLY CUTS v18 | ULTRA-VELOCITY ENGINE</title>
+    <style>
+        /* CSS INTEGRADO - ESTILO CYBER-IMPERIAL */
+        :root {
+            --neon-green: #00ff41;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050505;
+            --panel-bg: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 800px;
+            border: 2px solid var(--neon-green);
+            background: var(--panel-bg);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--neon-green);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .status-badge {
+            color: var(--neon-purple);
+            border: 1px solid var(--neon-purple);
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            box-shadow: 0 0 5px var(--neon-purple);
+        }
+
+        .terminal-log {
+            background: #000;
+            border: 1px solid #333;
+            height: 200px;
+            padding: 10px;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="text"] {
+            background: #111;
+            border: 1px solid var(--neon-green);
+            color: #fff;
+            padding: 12px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .btn-fragmentar {
+            background: var(--neon-green);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .btn-fragmentar:hover {
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+        }
+
+        .engine-specs {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #666;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        span.highlight { color: var(--neon-green); }
+    </style>
 </head>
 <body>
-    <div class="glass-container">
-        <h1>MALLY <span class="cyan">CUTS v18</span></h1>
-        <nav>
-            <a href="/shop">TIENDA</a> | <a href="/about">NOSOTROS</a> | <a href="/contact">CONTACTO</a>
-        </nav>
-        <div class="drop-zone" onclick="document.getElementById('vid').click()">
-            <input type="file" id="vid" hidden onchange="upload()">
-            <p>⚡ FRAGMENTAR VIDEO MAESTRO</p>
+
+    <div class="main-container">
+        <div class="header">
+            <h1>⚡ MALLY CUTS v18</h1>
+            <div class="status-badge">ENGINE: READY</div>
         </div>
-        <div id="status-box" style="display:none;" class="monitor">
-            <div id="msg">Sincronizando...</div>
-            <div class="progress"><div id="bar"></div></div>
+
+        <div class="terminal-log" id="log">
+            [SYSTEM]: Iniciando protocolos de fragmentación...<br>
+            [CORE]: Motor de hiper-velocidad detectado.<br>
+            [INFO]: Límite de procesamiento escalado a 10 horas.<br>
+            [READY]: Esperando ruta de video maestro...
+        </div>
+
+        <form class="input-group" onsubmit="event.preventDefault(); alert('Iniciando Corte de Hiper-Velocidad...');">
+            <input type="text" placeholder="PATH/TO/MASTER_VIDEO.MP4" required>
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" placeholder="TIEMPO (seg)" style="width: 30%;" value="60">
+                <button type="submit" class="btn-fragmentar" style="flex-grow: 1;">
+                    FRAGMENTAR VIDEO MAESTRO
+                </button>
+            </div>
+        </form>
+
+        <div class="engine-specs">
+            <div>MODE: <span class="highlight">NO-RECODE (STREAM COPY)</span></div>
+            <div>TARGET: <span class="highlight">AUTO-FOLDER SYNC</span></div>
+            <div>STRIKE: <span class="highlight">V10 GLOBAL MOTOR</span></div>
+            <div>AUTHOR: <span class="highlight">NOA / KHASSAM</span></div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
 </body>
 </html>
