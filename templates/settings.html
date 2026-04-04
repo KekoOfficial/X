@@ -1,44 +1,37 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>NEXUS CONFIG | MALLY</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
-</head>
-<body>
-    <div class="settings-card">
-        <div class="header">
-            <span class="icon">⚙️</span>
-            <h3>NEXUS DATABASE</h3>
-        </div>
-        
-        <div class="input-group">
-            <label>BOT TOKEN</label>
-            <input type="text" id="bot-token" placeholder="Ingrese el Token de Telegram">
-        </div>
+async function saveNexus() {
+    const btn = document.querySelector('.save-btn');
+    const data = {
+        bot_token: document.getElementById('bot-token').value,
+        chat_id: document.getElementById('chat-id').value
+    };
 
-        <div class="input-group">
-            <label>CHAT ID / CANAL</label>
-            <input type="text" id="chat-id" placeholder="-100xxxxxxxxxx">
-        </div>
+    // Feedback visual inmediato
+    btn.innerText = "GUARDANDO...";
+    btn.style.opacity = "0.7";
 
-        <button class="save-btn" onclick="saveNexus()">ACTUALIZAR BASE DE DATOS</button>
-        <a href="/" class="back-link">← VOLVER A LA CONSOLA</a>
-    </div>
+    try {
+        const res = await fetch("/api/save_settings", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
 
-    <script>
-        async function saveNexus() {
-            const data = {
-                bot_token: document.getElementById('bot-token').value,
-                chat_id: document.getElementById('chat-id').value
-            };
-            const res = await fetch("/api/save_settings", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
-            });
-            if(res.ok) alert("🛡️ Configuración Guardada en database/settings.json");
+        if(res.ok) {
+            btn.innerText = "¡GUARDADO!";
+            btn.style.background = "#00ff88"; // Verde éxito
+            
+            // Esperar 1 segundo para que veas el éxito y luego cerrar
+            setTimeout(() => {
+                // Intentar volver a la consola principal
+                window.location.href = "/";
+            }, 1000);
+        } else {
+            alert("❌ Error al guardar en la base de datos.");
+            btn.innerText = "ACTUALIZAR BASE DE DATOS";
+            btn.style.opacity = "1";
         }
-    </script>
-</body>
-</html>
+    } catch (err) {
+        alert("❌ Error de conexión con la Consola.");
+        btn.innerText = "ACTUALIZAR BASE DE DATOS";
+    }
+}
