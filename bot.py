@@ -1,52 +1,46 @@
 import subprocess, requests, os, time
 from data import db
-from logger import Logger
-
-log = Logger()
-OUT_DIR = "downloads"
+from config import DOWNLOADS_DIR
+from logger import log
 
 def start_mally_engine(path, filename, s_queue):
-    config = db.get()
-    os.makedirs(OUT_DIR, exist_ok=True)
+    conf = db.get()
+    token, cid = conf.get('bot_token'), conf.get('chat_id')
+
+    if not token or not cid:
+        s_queue.put("❌ ERROR: Configura el Token y ID")
+        return
+
+    base = os.path.splitext(filename)[0].upper().replace("_", " ")
+    s_queue.put(f"🎬 PROCESANDO: {base}")
     
-    base = os.path.splitext(filename)[0].replace("_", " ").upper()
-    s_queue.put(f"⚡ PROCESANDO: {base}")
-    log.info(f"Iniciando corte de {filename}")
+    # Corte ultra-rápido con FFmpeg
+    out_pattern = os.path.join(DOWNLOADS_DIR, f"{base}_%03d.mp4")
+    subprocess.run(["ffmpeg", "-y", "-i", path, "-c", "copy", "-map", "0", "-f", "segment", "-segment_time", "60", "-reset_timestamps", "1", out_pattern], capture_output=True)
 
-    # FFmpeg: Corte por segmentos de 60s sin pérdida de calidad
-    out_pattern = os.path.join(OUT_DIR, f"{base}_%03d.mp4")
-    subprocess.run([
-        "ffmpeg", "-y", "-i", path, "-c", "copy", "-f", "segment", 
-        "-segment_time", "60", "-reset_timestamps", "1", out_pattern
-    ], capture_output=True)
-
-    # Listar y ordenar alfabéticamente (001, 002, 003...)
-    parts = sorted([f for f in os.listdir(OUT_DIR) if f.startswith(base)])
+    parts = sorted([f for f in os.listdir(DOWNLOADS_DIR) if f.startswith(base)])
     total = len(parts)
 
-    for i, p_name in enumerate(parts, 1):
-        p_path = os.path.join(OUT_DIR, p_name)
+    for i, p in enumerate(parts, 1):
+        p_path = os.path.join(DOWNLOADS_DIR, p)
         s_queue.put(f"📤 Enviando {i}/{total}...")
-
-        caption = (
-            f"🎬 **{base}**\n"
-            f"📦 **PARTE:** {i} de {total}\n"
-            f"👤 **AUTOR:** Noa\n"
-            f"────────────────────\n"
-            f"👑 **MALLY ENTERPRISE v16**"
-        )
 
         try:
             with open(p_path, 'rb') as v:
-                requests.post(
-                    f"https://api.telegram.org/bot{config['bot_token']}/sendVideo",
-                    data={'chat_id': config['chat_id'], 'caption': caption, 'parse_mode': 'Markdown'},
-                    files={'video': v}, timeout=60
-                )
-            os.remove(p_path)
-            time.sleep(0.4) # Blindaje de orden para ráfagas
+                r = requests.post(f"https://api.telegram.org/bot{token}/sendVideo", 
+                    data={'chat_id': cid, 'caption': f"🎬 **{base}**\n📦 **PARTE:** {i}/{total}\n👑 **MALLY NITRO**", 'parse_mode': 'Markdown'}, 
+                    files={'video': v}, timeout=100)
+                
+                if r.status_code != 200:
+                    err = r.json().get('description', 'Error API')
+                    s_queue.put(f"❌ FALLÓ: {err}")
+                    break
         except Exception as e:
-            log.error(f"Fallo en parte {i}: {e}")
+            s_queue.put(f"❌ ERROR RED: {str(e)[:15]}")
+            break
+        
+        os.remove(p_path)
+        time.sleep(0.5) # Pausa estratégica para orden 1,2,3
 
-    s_queue.put("✅ TRABAJO COMPLETADO")
+    s_queue.put("✅ PROCESO COMPLETADO")
     if os.path.exists(path): os.remove(path)
