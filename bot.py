@@ -1,42 +1,129 @@
-import subprocess, requests, os, time
+import subprocess
+import requests
+import os
+import time
 from config import get_nexus_settings, DOWNLOAD_FOLDER
 
 def start_mally_engine(path, filename, s_queue):
+    """
+    Motor Mally v14.1 - Khassamx Dev
+    Procesa, corta y envía con monitoreo y branding imperial.
+    """
+    # 1. Cargar Configuración de la Base de Datos
     settings = get_nexus_settings()
-    token, cid = settings.get("bot_token"), settings.get("chat_id")
-    if not token or not cid: return
+    token = settings.get("bot_token")
+    cid = settings.get("chat_id")
+    
+    if not token or not cid:
+        s_queue.put("❌ ERROR: Configura los Tokens en /settings")
+        return
 
-    base = os.path.splitext(filename)[0]
-    out_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_%03d.mp4")
+    # Limpiar nombre de archivo para el título
+    base_name = os.path.splitext(filename)[0].replace("_", " ").upper()
+    out_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base_name}_%03d.mp4")
 
-    # 1. Mensaje Maestro en Telegram
-    s_queue.put(f"🎬 Analizando: {filename}")
-    res = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", 
-          data={'chat_id': cid, 'text': f"⏳ **MALLY MONITOR v14**\n🛰️ Procesando: {filename}\n📦 Preparando fragmentos...", 'parse_mode': 'Markdown'})
-    msg_id = res.json()['result']['message_id']
+    # 2. Notificar Inicio a la Web y Telegram
+    s_queue.put(f"🎬 Analizando: {base_name}")
+    
+    # Mensaje Maestro que se editará (Control de Consola)
+    master_msg = (
+        f"⏳ **MALLY MONITOR v14.1**\n"
+        f"────────────────────\n"
+        f"🛰️ **Estado:** Fragmentando Video...\n"
+        f"🎥 **Serie:** {base_name}\n"
+        f"👑 **Admin:** Khassamx Dev"
+    )
+    
+    try:
+        res = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage", 
+            data={'chat_id': cid, 'text': master_msg, 'parse_mode': 'Markdown'}
+        )
+        msg_id = res.json()['result']['message_id']
+    except Exception as e:
+        s_queue.put(f"❌ Error Telegram: {e}")
+        return
 
-    # 2. Corte Flash FFmpeg
-    subprocess.run(["ffmpeg", "-y", "-i", path, "-c", "copy", "-map", "0", "-f", "segment", "-segment_time", "60", "-reset_timestamps", "1", out_pattern], capture_output=True)
+    # 3. Proceso de Corte Flash (FFmpeg)
+    s_queue.put("⚡ Fragmentando en partes de 1 min...")
+    subprocess.run([
+        "ffmpeg", "-y", "-i", path, 
+        "-c", "copy", "-map", "0", 
+        "-f", "segment", "-segment_time", "60", 
+        "-reset_timestamps", "1", 
+        out_pattern
+    ], capture_output=True)
 
-    parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base)])
+    # Listar y ordenar las partes creadas
+    parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base_name)])
     total = len(parts)
 
-    # 3. Envío y Monitoreo
+    # 4. Envío con Diseño Imperial de Redes Sociales
     for i, p in enumerate(parts, 1):
         p_path = os.path.join(DOWNLOAD_FOLDER, p)
-        s_queue.put(f"📤 Enviando Parte {i}/{total}")
-        
-        # Editamos mensaje maestro en Telegram
-        requests.post(f"https://api.telegram.org/bot{token}/editMessageText", 
-            data={'chat_id': cid, 'message_id': msg_id, 'text': f"⚡ **ENVIANDO:** {filename}\n📦 Parte: {i} de {total}\n🔥 @MallySeries", 'parse_mode': 'Markdown'})
+        s_queue.put(f"📤 Enviando Parte {i} de {total}...")
 
-        with open(p_path, 'rb') as v:
-            requests.post(f"https://api.telegram.org/bot{token}/sendVideo", data={'chat_id': cid, 'supports_streaming': True}, files={'video': v})
+        # Actualizar Mensaje Maestro en Telegram
+        edit_text = (
+            f"⚡ **MALLY MONITOR v14.1**\n"
+            f"────────────────────\n"
+            f"📤 **Enviando:** {base_name}\n"
+            f"📦 **Progreso:** Parte {i} de {total}\n"
+            f"🔥 @MallySeries"
+        )
+        requests.post(
+            f"https://api.telegram.org/bot{token}/editMessageText", 
+            data={'chat_id': cid, 'message_id': msg_id, 'text': edit_text, 'parse_mode': 'Markdown'}
+        )
+
+        # DISEÑO DE LEYENDA (CAPTION) PARA CADA PARTE
+        caption_text = (
+            f"🎬 **PELÍCULA:** {base_name}\n"
+            f"📦 **PARTE:** {i} de {total}\n"
+            f"⏳ **DURACIÓN:** 01:00 min\n"
+            f"👤 **CREADOR:** Khassamx Dev\n"
+            f"────────────────────\n"
+            f"📸 **Instagram:** @MallySeries\n"
+            f"🎵 **TikTok:** @Esenaen15\n"
+            f"📢 **Telegram:** @MallySeries\n"
+            f"────────────────────\n"
+            f"👑 **IMPERIO MALLY v14.1**"
+        )
+
+        # Enviar Video con la nueva leyenda
+        with open(p_path, 'rb') as video_file:
+            requests.post(
+                f"https://api.telegram.org/bot{token}/sendVideo", 
+                data={
+                    'chat_id': cid, 
+                    'caption': caption_text, 
+                    'parse_mode': 'Markdown',
+                    'supports_streaming': True
+                }, 
+                files={'video': video_file}
+            )
         
+        # Limpieza inmediata para ahorrar espacio
         os.remove(p_path)
-        time.sleep(1)
-    
+        time.sleep(1) # Pausa de seguridad anti-flood
+
+    # 5. Finalización
     s_queue.put("✅ PROCESO COMPLETADO")
-    requests.post(f"https://api.telegram.org/bot{token}/editMessageText", 
-        data={'chat_id': cid, 'message_id': msg_id, 'text': f"✅ **FINALIZADO:** {filename}\n🎬 Total: {total} partes enviadas.\n👑 Khassamx Dev", 'parse_mode': 'Markdown'})
-    if os.path.exists(path): os.remove(path)
+    
+    final_msg = (
+        f"✅ **FRAGMENTACIÓN EXITOSA**\n"
+        f"────────────────────\n"
+        f"🎥 **Serie:** {base_name}\n"
+        f"📦 **Total:** {total} partes enviadas\n"
+        f"🌟 **Destino:** @MallySeries\n\n"
+        f"👑 Sistema desarrollado por Khassamx Dev"
+    )
+    
+    requests.post(
+        f"https://api.telegram.org/bot{token}/editMessageText", 
+        data={'chat_id': cid, 'message_id': msg_id, 'text': final_msg, 'parse_mode': 'Markdown'}
+    )
+
+    # Eliminar video maestro de uploads
+    if os.path.exists(path):
+        os.remove(path)
