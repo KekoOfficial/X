@@ -1,7 +1,38 @@
 body { background: #050505; color: #00f2ff; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-.settings-card { background: #0a0a0a; border: 1px solid #111; padding: 40px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 0 30px rgba(0,242,255,0.05); }
+
+.settings-card {
+    background: #0a0a0a;
+    border: 1px solid #111;
+    padding: 30px;
+    border-radius: 15px;
+    width: 320px;
+    text-align: center;
+}
+
+.header h3 { font-size: 14px; letter-spacing: 3px; margin-bottom: 25px; }
+
 .input-group { text-align: left; margin-bottom: 20px; }
-label { font-size: 9px; color: #444; display: block; margin-bottom: 5px; }
-input { width: 100%; background: #000; border: 1px solid #222; padding: 12px; color: #00f2ff; border-radius: 5px; box-sizing: border-box; outline: none; }
-input:focus { border-color: #00f2ff; }
-.save-btn { width: 100%; background: #00f2ff; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; border-radius: 5px; }
+label { font-size: 9px; color: #444; display: block; margin-bottom: 8px; }
+
+input {
+    width: 100%;
+    background: #000;
+    border: 1px solid #222;
+    padding: 12px;
+    color: #00f2ff;
+    border-radius: 5px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.save-btn {
+    width: 100%;
+    background: #00f2ff;
+    color: #000;
+    border: none;
+    padding: 15px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
