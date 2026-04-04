@@ -1,56 +1,40 @@
 import os
 import threading
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for
+from werkzeug.utils import secure_filename
 from app.services import VideoEngine
 
-# Inicialización del Blueprint Imperial
 bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
-    """Interfaz de un solo botón: Sin esperas, sin cargas."""
     return render_template('index.html')
 
-@bp.route('/api/direct-fire', methods=['POST'])
-def direct_fire():
+@bp.route('/api/brutal-process', methods=['POST'])
+def brutal_process():
     """
-    EL DISPARADOR: 
-    Busca el video localmente en media/raw/ para evitar el lag del navegador.
+    Recibe el video de la galería e inicia el bombardeo a Telegram.
     """
-    data = request.get_json()
-    if not data or 'filename' not in data:
-        return jsonify({"status": "error", "message": "Falta el nombre del archivo"}), 400
+    if 'video_file' not in request.files:
+        return redirect(url_for('main.index'))
+    
+    file = request.files['video_file']
+    if file.filename == '':
+        return redirect(url_for('main.index'))
 
-    filename = data.get('filename')
-    # Ruta absoluta para que el motor no se pierda
-    raw_path = os.path.join(os.getcwd(), 'media', 'raw', filename)
-
-    # Verificación instantánea
-    if not os.path.exists(raw_path):
-        return jsonify({
-            "status": "error", 
-            "message": f"No existe: {filename} en media/raw/"
-        }), 404
-
-    # --- EJECUCIÓN NITRO ASÍNCRONA ---
-    # Lanzamos el motor en un hilo separado. 
-    # La web te responde "OK" en milisegundos y el motor sigue trabajando solo.
-    try:
-        engine_thread = threading.Thread(
-            target=VideoEngine.execute_parallel_cut, 
-            args=(raw_path, 60) # Segmentos de 60 segundos por defecto
-        )
-        engine_thread.daemon = True # El motor sigue vivo aunque cierres la pestaña
-        engine_thread.start()
-        
-        return jsonify({
-            "status": "success", 
-            "message": f"🔥 MOTOR V10 INICIADO: {filename}. Revisa Telegram."
-        }), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@bp.route('/check')
-def check():
-    """Verifica que el Imperio esté en línea"""
-    return "SERVER ACTIVE - MODE: ZERO PATIENCE"
+    # 1. Guardar el archivo en media/raw de forma segura
+    filename = secure_filename(file.filename)
+    raw_path = os.path.join('media', 'raw', filename)
+    file.save(raw_path)
+    
+    # 2. DISPARO ASÍNCRONO (Cero paciencia)
+    # Lanzamos el proceso en segundo plano para que la web no se cuelgue
+    engine_thread = threading.Thread(
+        target=VideoEngine.execute_parallel_cut, 
+        args=(raw_path, 60) # Cortes de 60 segundos fijos
+    )
+    engine_thread.daemon = True
+    engine_thread.start()
+    
+    # 3. Liberar el navegador de inmediato
+    return redirect(url_for('main.index'))
