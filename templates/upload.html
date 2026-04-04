@@ -1,58 +1,39 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY CUTS v10</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="glass-container">
-        <h1>MALLY <span class="highlight">CUTS v10</span></h1>
-        <p class="subtitle">TELEGRAM HIGH-SPEED ENGINE</p>
-        
-        <div id="upload-ui">
-            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden onchange="enviarMally()">
-                <span class="icon">⚡</span>
-                <p>SUBIR VIDEO MAESTRO</p>
-                <small style="color: #444; font-size: 10px;">CORTES AUTOMÁTICOS DE 1 MIN</small>
-            </div>
-            <div style="margin-top: 20px;">
-                <a href="/history" style="color: var(--primary); text-decoration: none; font-size: 12px;">Ver Historial de Cortes</a>
-            </div>
-        </div>
+<div class="glass-container">
+    <div class="settings-trigger" onclick="document.getElementById('mally-modal').style.display='flex'">⚙️ AJUSTES NEXUS</div>
 
-        <div id="loader-ui" style="display:none;">
-            <div class="spinner"></div>
-            <p id="status-msg">FRAGMENTANDO VIDEO...</p>
-            <p style="font-size: 11px; color: #555;">El motor MALLY está enviando las partes a Telegram.</p>
+    <h1>MALLY <span class="highlight">CUTS v13</span></h1>
+    <p class="subtitle">CONSOLA KHASSAMX DEV</p>
+    
+    <div id="upload-ui">
+        <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+            <input type="file" id="video-input" hidden onchange="enviarMally()">
+            <span class="icon">⚡</span>
+            <p>SUBIR VIDEO MAESTRO</p>
         </div>
     </div>
+</div>
 
-    <script>
-        async function enviarMally() {
-            const file = document.getElementById('video-input').files[0];
-            if(!file) return;
+<div id="mally-modal" class="modal">
+    <div class="modal-content">
+        <h3>⚙️ CONFIGURACIÓN PRIVADA</h3>
+        <input type="text" id="bot-token" placeholder="PEGA AQUÍ EL TOKEN DEL BOT">
+        <input type="text" id="chat-id" placeholder="ID DEL CANAL O GRUPO">
+        <button onclick="guardarConfig()">GUARDAR EN BASE DE DATOS</button>
+        <button onclick="document.getElementById('mally-modal').style.display='none'" style="background:transparent; border:1px solid #333; margin-top:10px;">CERRAR</button>
+    </div>
+</div>
 
-            document.getElementById('upload-ui').style.display = 'none';
-            document.getElementById('loader-ui').style.display = 'block';
-
-            const fd = new FormData();
-            fd.append("video", file);
-
-            try {
-                const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
-                if(res.ok) {
-                    document.getElementById('status-msg').innerHTML = 
-                        "<span style='color:var(--primary)'>¡MALLY EN MARCHA!</span><br>Sigue el progreso en Telegram.";
-                    document.querySelector('.spinner').style.display = 'none';
-                }
-            } catch(e) {
-                alert("Error de conexión con el servidor MALLY");
-                location.reload();
-            }
-        }
-    </script>
-</body>
-</html>
+<script>
+async function guardarConfig() {
+    const data = {
+        bot_token: document.getElementById('bot-token').value,
+        chat_id: document.getElementById('chat-id').value
+    };
+    const res = await fetch("/api/save_settings", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    });
+    if(res.ok) alert("Configuración Guardada Correctamente");
+}
+</script>
