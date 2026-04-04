@@ -5,73 +5,71 @@ from config import *
 from logger import Logger
 
 app = Flask(__name__)
-app.secret_key = "IMP_V10_ULTIMATE" # Llave maestra de sesión
+app.secret_key = "IMP_V10_FLASH"
 log = Logger()
-executor = ThreadPoolExecutor(max_workers=5)
+# Aumentamos a 10 trabajadores para gestionar mejor las subidas paralelas
+executor = ThreadPoolExecutor(max_workers=10)
 
-# CONFIGURACIÓN DE SEGURIDAD V10
-ADMIN_PASS = "1234" # Tu clave de acceso
+ADMIN_PASS = "1234" 
 
-# --- MOTORES DE PROCESAMIENTO ---
-
-def process_engine(input_path, filename, segment_time, is_tiktok):
-    """Motor v10: Telegram Standard o TikTok Vertical."""
+def flash_engine(input_path, filename):
+    """Motor optimizado: Solo velocidad y orden estricto."""
     base = os.path.splitext(filename)[0]
     output_pattern = os.path.join(DOWNLOAD_FOLDER, f"{base}_part_%03d.mp4")
     
     try:
-        if is_tiktok:
-            log.info(f"🎵 Modo TikTok Activo: Reencuadrando a 9:16...")
-            # Filtro profesional: Escala, Recorte y Optimización móvil
-            vf_chain = "scale=ih*9/16:ih,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1"
-            codec = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "23"]
-        else:
-            log.info(f"✈️ Modo Telegram Activo: Corte Sincronizado...")
-            vf_chain = "copy"
-            codec = ["-c", "copy"] # Ultra rápido sin re-encodear
-
+        log.info(f"⚡ Iniciando Corte Flash: {filename}")
+        
+        # SEGMENTACIÓN INSTANTÁNEA (Usa 'copy' para no tardar nada)
+        # Corta en fragmentos de 60 segundos (1 minuto)
         cmd = [
             "ffmpeg", "-y", "-i", input_path,
-            "-vf", vf_chain if is_tiktok else "null",
-            *codec, "-map", "0",
-            "-f", "segment", "-segment_time", str(segment_time),
+            "-c", "copy", "-map", "0",
+            "-f", "segment", "-segment_time", "60", 
             "-reset_timestamps", "1",
+            "-segment_format_options", "movflags=+faststart",
             output_pattern
         ]
         
+        # El corte de un video de 1 hora debería tardar menos de 20 segundos
         subprocess.run(cmd, capture_output=True, check=True)
 
         parts = sorted([f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(base)])
         total = len(parts)
+        log.info(f"📦 {total} partes listas. Iniciando envío sincronizado...")
 
-        # Envío Sincronizado v10
+        # ENVÍO SECUENCIAL (Para garantizar el orden 1, 2, 3...)
         for i, p_name in enumerate(parts, 1):
             p_path = os.path.join(DOWNLOAD_FOLDER, p_name)
-            mode_label = "📱 TIKTOK DRAFT" if is_tiktok else "✈️ TELEGRAM PART"
             
             with open(p_path, 'rb') as v:
-                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendVideo", data={
+                # Se eliminó 'disable_notification' para que siempre avise
+                res = requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendVideo", data={
                     'chat_id': CHAT_ID,
-                    'caption': f"{mode_label}\n📦 PARTE {i}/{total}\n🎬 {filename}\n#MallyCutsV10 #ImperioIMP",
+                    'caption': f"📦 PARTE {i}/{total}\n🎬 {filename}\n⚡ MallyCuts Sincronizado",
                     'supports_streaming': True
-                }, files={'video': v})
+                }, files={'video': v}, timeout=300)
             
-            os.remove(p_path) # Limpieza en tiempo real
-            time.sleep(1.3)
+            if res.status_code == 200:
+                os.remove(p_path) # Borrar para no llenar Termux
+                # Pausa mínima de 1.2s para asegurar que Telegram no los desordene
+                time.sleep(1.2)
+            else:
+                log.error(f"⚠️ Error enviando parte {i}")
 
         if os.path.exists(input_path): os.remove(input_path)
-        log.success(f"✅ Secuencia v10 completada para {filename}")
+        log.success(f"🔥 Proceso finalizado: {total} partes enviadas en orden.")
 
     except Exception as e:
-        log.error(f"🔥 Error Crítico Motor v10: {e}")
+        log.error(f"🔥 Fallo en el motor: {e}")
 
-# --- RUTAS E INTERFAZ ---
+# --- RUTAS SIMPLIFICADAS ---
 
 @app.route("/")
 def index():
     if "auth" in session:
-        return render_template("upload.html") # Panel de Control
-    return render_template("login.html") # Pantalla de Bloqueo
+        return render_template("upload.html")
+    return render_template("login.html")
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -85,18 +83,15 @@ def upload_v10():
     if "auth" not in session: return jsonify({"status": "forbidden"}), 403
     
     file = request.files.get("video")
-    sec = int(request.form.get("seconds", 60))
-    is_tiktok = request.form.get("tiktok") == "true" # Nuevo parámetro v10
-
     if not file: return jsonify({"status": "error"}), 400
 
     path = os.path.join(UPLOAD_FOLDER, f"V10_{uuid.uuid4().hex[:5]}_{file.filename}")
     file.save(path)
     
-    executor.submit(process_engine, path, file.filename, sec, is_tiktok)
+    # Dispara el motor sin opciones raras, directo al grano
+    executor.submit(flash_engine, path, file.filename)
     return jsonify({"status": "success"})
 
 if __name__ == "__main__":
     init_folders()
-    log.info("🛡️ MALLYCUTS V10 PROTECTED ONLINE")
     app.run(host=HOST, port=PORT, debug=False, threaded=True)
