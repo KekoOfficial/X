@@ -3,66 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY NEXUS | CONSOLA</title>
+    <title>MALLY NEXUS v13 | CONSOLA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <a href="/settings" class="nexus-btn-settings">⚙️ CONFIGURACIÓN NEXUS</a>
+    <a href="/settings" class="nexus-config-btn">
+        <span class="gear-icon">⚙️</span> CONFIGURACIÓN
+    </a>
 
     <div class="glass-container">
         <header>
-            <h1>MALLY <span class="highlight">CUTS v13</span></h1>
-            <p class="brand">KHASSAMX DEV EDITION</p>
+            <h1 class="main-title">MALLY <span class="highlight">CUTS v13</span></h1>
+            <p class="engine-tag">TELEGRAM HIGH-SPEED ENGINE</p>
         </header>
         
-        <main id="ui-container">
-            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden accept="video/*" onchange="iniciarProceso()">
-                <div class="icon-pulse">⚡</div>
-                <p>SOLTAR VIDEO MAESTRO</p>
-                <small>Formatos: MP4, MKV, MOV</small>
+        <div id="upload-panel">
+            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+                <input type="file" id="video-input" hidden accept="video/*" onchange="startMallyProcess()">
+                <div class="bolt-icon">⚡</div>
+                <p class="upload-text">SUBIR VIDEO MAESTRO</p>
+                <p class="auto-tag">CORTES AUTOMÁTICOS DE 1 MIN</p>
             </div>
-        </main>
-
-        <div id="status-console" style="display: none;">
-            <div class="loader"></div>
-            <p class="status-text">FRAGMENTANDO SERIE...</p>
-            <p class="target-info">Destino: @MallySeries</p>
         </div>
+
+        <div id="processing-status" style="display: none;">
+            <div class="cyber-loader"></div>
+            <p class="status-msg">FRAGMENTANDO EN CONSOLA...</p>
+            <p class="dev-tag">KHASSAMX DEV EDITION</p>
+        </div>
+
+        <footer class="footer-links">
+            <a href="#" class="history-link">Ver Historial de Cortes</a>
+        </footer>
     </div>
 
     <script>
-        async function iniciarProceso() {
+        async function startMallyProcess() {
             const input = document.getElementById('video-input');
             if (input.files.length === 0) return;
 
-            const file = input.files[0];
-            const ui = document.getElementById('ui-container');
-            const console = document.getElementById('status-console');
-
-            // Cambio visual a modo "Procesando"
-            ui.style.display = 'none';
-            console.style.display = 'block';
+            // Cambiar UI al modo procesamiento
+            document.getElementById('upload-panel').style.display = 'none';
+            document.getElementById('processing-status').style.display = 'block';
 
             const formData = new FormData();
-            formData.append("video", file);
+            formData.append("video", input.files[0]);
 
             try {
                 const response = await fetch("/api/upload_mally", {
                     method: "POST",
                     body: formData
                 });
-
                 if (response.ok) {
-                    alert("🔥 Motor Mally v13 Iniciado con éxito.\nRevisa el canal @MallySeries.");
-                    // Resetear para nueva subida
+                    alert("🚀 Motor Mally Iniciado. Revisa @MallySeries");
                     window.location.reload();
-                } else {
-                    alert("❌ Error en la Consola. Revisa los Logs.");
                 }
-            } catch (error) {
-                alert("❌ Fallo de conexión con el servidor.");
+            } catch (e) {
+                alert("❌ Error de conexión con la Consola");
             }
         }
     </script>
