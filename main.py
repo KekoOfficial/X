@@ -5,7 +5,8 @@ from config import init_nexus, DB_PATH
 from bot import start_mally_engine
 
 app = Flask(__name__)
-executor = ThreadPoolExecutor(max_workers=20)
+# 50 hilos para que nunca se sature la comunicación
+executor = ThreadPoolExecutor(max_workers=50)
 status_queue = queue.Queue()
 
 @app.route("/")
@@ -18,7 +19,9 @@ def settings_page(): return render_template("settings.html")
 def stream_status():
     def event_stream():
         while True:
-            yield f"data: {status_queue.get()}\n\n"
+            # Recupera mensajes de la cola y los dispara a la web al instante
+            msg = status_queue.get()
+            yield f"data: {msg}\n\n"
     return Response(event_stream(), mimetype="text/event-stream")
 
 @app.route("/api/upload_mally", methods=["POST"])
@@ -26,9 +29,11 @@ def upload():
     file = request.files.get("video")
     if not file: return jsonify({"status": "error"}), 400
     
-    path = os.path.join("uploads", f"V14_{uuid.uuid4().hex[:4]}.mp4")
+    # Nombre único para evitar conflictos de lectura/escritura
+    path = os.path.join("uploads", f"ENT_{uuid.uuid4().hex[:5]}.mp4")
     file.save(path)
     
+    # Ejecución inmediata en segundo plano
     executor.submit(start_mally_engine, path, file.filename, status_queue)
     return jsonify({"status": "success"})
 
