@@ -1,90 +1,81 @@
-/* MALLY CUTS v18 - CONTROLADOR DE HIPER-VELOCIDAD
-   Lógica de Frontend para fragmentación asíncrona
-*/
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("⚡ MALLY ENGINE: Front-end listo.");
-    
-    // Si estamos en la página del editor, inicializamos el motor de corte
-    const cutBtn = document.getElementById('start-cut-btn');
-    if (cutBtn) {
-        cutBtn.addEventListener('click', startMallyCut);
-    }
-});
-
 /**
- * Ejecuta la fragmentación enviando la ruta al backend
+ * MALLY CUTS V2000 - FRONTEND CORE
+ * Gestiona la interacción entre la UI y el Motor de Termux
  */
-async function startMallyCut() {
-    const statusLabel = document.getElementById('status');
-    const videoPath = document.getElementById('video-path').value;
-    const segmentSeconds = document.getElementById('seg').value;
 
-    if (!videoPath) {
-        alert("❌ ERROR: Falta la ruta del video maestro.");
-        return;
-    }
+const V2000 = {
+    // --- SELECTORES ---
+    form: document.getElementById('v2k-form'),
+    input: document.getElementById('file-picker'),
+    button: document.getElementById('launch-btn'),
+    engineRoom: document.getElementById('engine-room'),
+    statusText: document.querySelector('.status-msg'),
 
-    // Cambiar estado a PROCESANDO (Estilo Neón)
-    statusLabel.innerText = ">> STATUS: FRAGMENTANDO EN HI-SPEED...";
-    statusLabel.style.color = "#bc13fe"; // Púrpura de proceso
-    statusLabel.style.textShadow = "0 0 15px #bc13fe";
+    // --- INICIALIZACIÓN ---
+    init() {
+        console.log("⚡ V2000 Core Initialized");
+        this.checkSystemHealth();
+    },
 
-    try {
-        const response = await fetch('/api/cut', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                path: videoPath,
-                seconds: segmentSeconds
-            })
-        });
+    // --- DISPARO DE PROCESO ---
+    async ignite() {
+        const file = this.input.files[0];
+        if (!file) return;
 
-        const data = await response.json();
+        // 1. Optimización Visual
+        this.button.style.display = 'none';
+        this.engineRoom.style.display = 'block';
+        this.updateStatus("🚀 PAQUETE RECIBIDO... SUBIENDO AL BUFFER");
 
-        if (data.status === 'success') {
-            // ÉXITO TOTAL
-            statusLabel.innerText = ">> STATUS: ¡FRAGMENTACIÓN COMPLETADA!";
-            statusLabel.style.color = "#00ff41"; // Verde Neón
-            statusLabel.style.textShadow = "0 0 15px #00ff41";
-            
-            console.log("✅ Archivos generados en: " + data.folder);
-            
-            // Opcional: Mostrar alerta imperial
-            showTerminalAlert(`ÉXITO: Clips creados en ${data.folder}`);
-        } else {
-            throw new Error("Fallo en el motor V10");
+        // 2. Preparar Datos (FormData para enviar el archivo)
+        const formData = new FormData();
+        formData.append('video_file', file);
+
+        try {
+            // Enviamos el video vía Fetch para no recargar la página y mantener el control
+            const response = await fetch('/api/brutal-process', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                this.updateStatus("✅ MOTOR V2000 EN MARCHA<br>FRAGMENTANDO Y DISPARANDO A TELEGRAM");
+                
+                // Reset automático tras éxito
+                setTimeout(() => this.resetUI(), 8000);
+            } else {
+                throw new Error("Fallo en la comunicación con el Core");
+            }
+        } catch (error) {
+            this.updateStatus("❌ ERROR CRÍTICO: REVISA TERMUX");
+            console.error(error);
+            setTimeout(() => this.resetUI(), 5000);
         }
+    },
 
-    } catch (error) {
-        console.error("❌ Error Crítico:", error);
-        statusLabel.innerText = ">> STATUS: ERROR EN EL MOTOR V10";
-        statusLabel.style.color = "#ff0000";
-        statusLabel.style.textShadow = "0 0 15px #ff0000";
+    // --- TELEMETRÍA (Opcional: Consulta si el sistema está vivo) ---
+    async checkSystemHealth() {
+        try {
+            const res = await fetch('/api/v2000/system-info');
+            const data = await res.json();
+            console.log("📊 System Health:", data);
+        } catch (e) {
+            console.warn("⚠️ No se pudo conectar con la telemetría");
+        }
+    },
+
+    // --- UTILIDADES ---
+    updateStatus(html) {
+        this.statusText.innerHTML = html;
+    },
+
+    resetUI() {
+        this.button.style.display = 'block';
+        this.engineRoom.style.display = 'none';
+        this.form.reset();
+        this.updateStatus("<span class='blink'>PROCESO ASÍNCRONO ACTIVADO</span><br>FRAGMENTANDO EN 60s...<br>SUBIENDO A TELEGRAM...");
     }
-}
+};
 
-/**
- * Una simple notificación estilo consola
- */
-function showTerminalAlert(message) {
-    const notification = document.createElement('div');
-    notification.style.position = 'fixed';
-    notification.style.bottom = '20px';
-    notification.style.right = '20px';
-    notification.style.background = '#0a0a0a';
-    notification.style.border = '1px solid #00ff41';
-    notification.style.color = '#00ff41';
-    notification.style.padding = '15px';
-    notification.style.zIndex = '9999';
-    notification.style.fontFamily = 'Courier New';
-    notification.innerText = "[SYS]: " + message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
-}
+// Arrancar sistema
+document.addEventListener('DOMContentLoaded', () => V2000.init());
