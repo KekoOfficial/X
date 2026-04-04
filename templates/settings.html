@@ -7,41 +7,30 @@
 </head>
 <body>
     <div class="settings-card">
-        <div class="header">
-            <span style="color:#00f2ff; font-size:10px;">⚙️</span>
-            <h3>NEXUS DATABASE</h3>
-        </div>
+        <div class="header"><h3>NEXUS DATABASE</h3></div>
         <div class="input-group">
             <label>BOT TOKEN</label>
-            <input type="text" id="bot-token" placeholder="Ingrese Token">
+            <input type="text" id="bot-token" placeholder="Token de Telegram">
         </div>
         <div class="input-group">
             <label>CHAT ID / CANAL</label>
             <input type="text" id="chat-id" placeholder="-100xxxxxxxxxx">
         </div>
-        <button class="save-btn" id="btn-save" onclick="saveNexus()">ACTUALIZAR BASE DE DATOS</button>
+        <button class="save-btn" onclick="save()">ACTUALIZAR BASE DE DATOS</button>
     </div>
 
     <script>
-        async function saveNexus() {
-            const btn = document.getElementById('btn-save');
+        async function save() {
             const data = {
                 bot_token: document.getElementById('bot-token').value,
                 chat_id: document.getElementById('chat-id').value
             };
-            btn.innerText = "GUARDANDO...";
-            
             const res = await fetch("/api/save_settings", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data)
             });
-
-            if(res.ok) {
-                btn.innerText = "¡EXITO! REDIRIGIENDO...";
-                btn.style.background = "#00ff88";
-                setTimeout(() => { window.location.href = "/"; }, 1000);
-            }
+            if(res.ok) window.location.href = "/";
         }
     </script>
 </body>
