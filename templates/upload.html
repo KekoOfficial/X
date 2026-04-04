@@ -1,35 +1,58 @@
-<div class="glass-container">
-    <h1>MALLY <span class="highlight">CUTS v10</span></h1>
-    <p style="color:#666; font-size:12px;">TELEGRAM HIGH-SPEED ENGINE</p>
-    
-    <div id="upload-ui">
-        <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-            <input type="file" id="video-input" hidden onchange="enviarMally()">
-            <span class="icon" style="font-size:50px;">⚡</span>
-            <p>SUBIR VIDEO MAESTRO</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MALLY CUTS v10</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="glass-container">
+        <h1>MALLY <span class="highlight">CUTS v10</span></h1>
+        <p class="subtitle">TELEGRAM HIGH-SPEED ENGINE</p>
+        
+        <div id="upload-ui">
+            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
+                <input type="file" id="video-input" hidden onchange="enviarMally()">
+                <span class="icon">⚡</span>
+                <p>SUBIR VIDEO MAESTRO</p>
+                <small style="color: #444; font-size: 10px;">CORTES AUTOMÁTICOS DE 1 MIN</small>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/history" style="color: var(--primary); text-decoration: none; font-size: 12px;">Ver Historial de Cortes</a>
+            </div>
+        </div>
+
+        <div id="loader-ui" style="display:none;">
+            <div class="spinner"></div>
+            <p id="status-msg">FRAGMENTANDO VIDEO...</p>
+            <p style="font-size: 11px; color: #555;">El motor MALLY está enviando las partes a Telegram.</p>
         </div>
     </div>
 
-    <div id="loader-ui" style="display:none;">
-        <div class="spinner"></div>
-        <p id="status-msg">FRAGMENTANDO VIDEO...</p>
-    </div>
-</div>
+    <script>
+        async function enviarMally() {
+            const file = document.getElementById('video-input').files[0];
+            if(!file) return;
 
-<script>
-async function enviarMally() {
-    const file = document.getElementById('video-input').files[0];
-    if(!file) return;
+            document.getElementById('upload-ui').style.display = 'none';
+            document.getElementById('loader-ui').style.display = 'block';
 
-    document.getElementById('upload-ui').style.display = 'none';
-    document.getElementById('loader-ui').style.display = 'block';
+            const fd = new FormData();
+            fd.append("video", file);
 
-    const fd = new FormData();
-    fd.append("video", file);
-
-    const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
-    if(res.ok) {
-        document.getElementById('status-msg').innerHTML = "<span style='color:#00f2ff'>¡MALLY EN MARCHA!</span><br>Revisa Telegram.";
-    }
-}
-</script>
+            try {
+                const res = await fetch("/api/upload_mally", { method: "POST", body: fd });
+                if(res.ok) {
+                    document.getElementById('status-msg').innerHTML = 
+                        "<span style='color:var(--primary)'>¡MALLY EN MARCHA!</span><br>Sigue el progreso en Telegram.";
+                    document.querySelector('.spinner').style.display = 'none';
+                }
+            } catch(e) {
+                alert("Error de conexión con el servidor MALLY");
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
