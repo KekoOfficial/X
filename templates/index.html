@@ -3,64 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY CUTS v18.5 | AUTO-LOADER</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>MALLY CUTS v18.5 | ONE-TAP</title>
     <style>
-        :root { --neon: #00ff41; --purp: #bc13fe; --bg: #050505; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        .navbar { border-bottom: 1px solid var(--neon); padding: 10px 20px; display: flex; justify-content: space-between; background: #000; font-size: 0.8rem; }
-        .container { display: flex; align-items: center; justify-content: center; flex-grow: 1; }
-        .box { border: 2px solid var(--neon); padding: 40px; background: #0a0a0a; width: 85%; max-width: 450px; text-align: center; box-shadow: 0 0 25px rgba(0,255,65,0.2); }
-        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); margin-bottom: 5px; }
-        .subtitle { font-size: 0.7rem; color: #666; margin-bottom: 30px; display: block; }
-        
+        :root { --neon: #00ff41; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .main-panel { border: 2px solid var(--neon); padding: 50px; background: #0a0a0a; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,255,65,0.2); }
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); letter-spacing: 5px; margin-bottom: 40px; }
         .btn-mally { 
-            background: var(--neon); color: #000; border: none; padding: 20px; width: 100%; 
-            font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--neon); color: #000; border: none; padding: 25px; width: 100%; 
+            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1.2rem;
+            transition: 0.3s;
         }
-        .btn-gallery { background: var(--purp) !important; color: #fff !important; }
-        
-        #loading-status { display: none; margin-top: 15px; color: var(--neon); font-size: 0.8rem; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .btn-mally:active { transform: scale(0.95); background: #fff; }
+        #loader { display: none; margin-top: 30px; }
+        .spinner { border: 4px solid #111; border-top: 4px solid var(--neon); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        .status-text { color: var(--neon); font-size: 0.8rem; margin-top: 15px; animation: blink 1s infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <span style="color: var(--neon);">MALLY CUTS v18.5</span>
-        <span style="color: var(--purp);">AUTO-PILOT ACTIVE</span>
-    </div>
-
-    <div class="container">
-        <div class="box">
-            <h1>MASTER VIDEO</h1>
-            <span class="subtitle">> TOCA EL BOTÓN PARA ABRIR TU GALERÍA</span>
-
-            <form id="upload-form" action="/api/auto-upload" method="POST" enctype="multipart/form-data">
-                <input type="file" name="video_file" id="video-input" accept="video/*" style="display: none;" onchange="autoSubmit()">
-                
-                <button type="button" class="btn-mally" onclick="document.getElementById('video-input').click()">
-                    🎬 SELECCIONAR DE GALERÍA
-                </button>
-            </form>
-
-            <button class="btn-mally btn-gallery" onclick="location.href='/gallery'">
-                📂 GALERÍA DE CORTES
+    <div class="main-panel">
+        <h1>MALLY CUTS</h1>
+        
+        <form id="engine-form" action="/api/auto-process" method="POST" enctype="multipart/form-data">
+            <input type="file" name="video_file" id="video-input" accept="video/*" style="display: none;" onchange="fireEngine()">
+            <button type="button" class="btn-mally" id="main-button" onclick="document.getElementById('video-input').click()">
+                🎬 SELECCIONAR Y CORTAR
             </button>
+        </form>
 
-            <div id="loading-status">CARGANDO VIDEO AL MOTOR...</div>
+        <div id="loader">
+            <div class="spinner"></div>
+            <div class="status-text">MOTOR V10: FRAGMENTANDO EN PARTES DE 60s...<br>NO CIERRES ESTA VENTANA</div>
         </div>
     </div>
 
     <script>
-        function autoSubmit() {
-            const status = document.getElementById('loading-status');
-            const form = document.getElementById('upload-form');
-            const fileInput = document.getElementById('video-input');
-
-            if (fileInput.files.length > 0) {
-                status.style.display = 'block';
-                form.submit();
+        function fireEngine() {
+            const input = document.getElementById('video-input');
+            if (input.files.length > 0) {
+                document.getElementById('main-button').style.display = 'none';
+                document.getElementById('loader').style.display = 'block';
+                document.getElementById('engine-form').submit();
             }
         }
     </script>
