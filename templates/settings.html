@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NEXUS CONFIG | MALLY</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body>
+    <div class="settings-card">
+        <div class="header">
+            <span class="icon">⚙️</span>
+            <h3>NEXUS DATABASE</h3>
+        </div>
+        
+        <div class="input-group">
+            <label>BOT TOKEN</label>
+            <input type="text" id="bot-token" placeholder="Ingrese el Token de Telegram">
+        </div>
+
+        <div class="input-group">
+            <label>CHAT ID / CANAL</label>
+            <input type="text" id="chat-id" placeholder="-100xxxxxxxxxx">
+        </div>
+
+        <button class="save-btn" onclick="saveNexus()">ACTUALIZAR BASE DE DATOS</button>
+        <a href="/" class="back-link">← VOLVER A LA CONSOLA</a>
+    </div>
+
+    <script>
+        async function saveNexus() {
+            const data = {
+                bot_token: document.getElementById('bot-token').value,
+                chat_id: document.getElementById('chat-id').value
+            };
+            const res = await fetch("/api/save_settings", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+            if(res.ok) alert("🛡️ Configuración Guardada en database/settings.json");
+        }
+    </script>
+</body>
+</html>
