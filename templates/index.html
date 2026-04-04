@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MALLY ENTERPRISE | Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="glass-container">
+        <h1>MALLY <span class="cyan">CUTS v18</span></h1>
+        <nav>
+            <a href="/shop">TIENDA</a> | <a href="/about">NOSOTROS</a> | <a href="/contact">CONTACTO</a>
+        </nav>
+        <div class="drop-zone" onclick="document.getElementById('vid').click()">
+            <input type="file" id="vid" hidden onchange="upload()">
+            <p>⚡ FRAGMENTAR VIDEO MAESTRO</p>
+        </div>
+        <div id="status-box" style="display:none;" class="monitor">
+            <div id="msg">Sincronizando...</div>
+            <div class="progress"><div id="bar"></div></div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
