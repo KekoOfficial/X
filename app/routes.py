@@ -10,8 +10,8 @@ bp = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@bp.route('/api/brutal-process', methods=['POST'])
-def brutal_process():
+@bp.route('/api/process', methods=['POST'])
+def process():
     if 'video_file' not in request.files:
         return redirect(url_for('main.index'))
     
@@ -19,22 +19,18 @@ def brutal_process():
     if file.filename == '':
         return redirect(url_for('main.index'))
 
-    # Guardamos rápido en la carpeta interna
+    # 1. Guardado ultra-rápido en RAM/Disco
     filename = secure_filename(file.filename)
     raw_path = os.path.join('media', 'raw', filename)
     file.save(raw_path)
     
-    # --- AQUÍ ESTÁ EL TRUCO DE LA VELOCIDAD ---
-    # Lanzamos el motor en un hilo "Daemon" para que Flask responda 
-    # de inmediato y no se quede la pantalla en blanco.
-    def run_engine():
-        VideoEngine.execute_parallel_cut(raw_path, 60)
-        # Opcional: Borrar original para no llenar memoria
-        # os.remove(raw_path)
-
-    thread = threading.Thread(target=run_engine)
+    # 2. SEGUNDO PLANO (Background Engine)
+    # Lanzamos el motor y devolvemos la respuesta al navegador para liberar memoria
+    thread = threading.Thread(
+        target=VideoEngine.execute_parallel_cut, 
+        args=(raw_path, 60) # Siempre fragmentos de 60s
+    )
     thread.daemon = True
     thread.start()
     
-    # Volvemos al inicio al instante
     return redirect(url_for('main.index'))
