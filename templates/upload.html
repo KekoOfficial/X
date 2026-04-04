@@ -3,35 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY NEXUS v13</title>
+    <title>MALLY MONITOR v14</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
 </head>
 <body>
     <div class="glass-container">
-        <a href="/settings" class="nexus-btn">⚙️ CONFIGURACIÓN NEXUS</a>
-        <h1 style="margin-top:20px;">MALLY <span style="color:#00f2ff;">CUTS v13</span></h1>
-        <p style="font-size:9px; color:#444; letter-spacing:3px;">KHASSAMX DEV</p>
+        <a href="/settings" class="nexus-btn">⚙️ NEXUS CONFIG</a>
+        <h1>MALLY <span class="cyan">MONITOR v14</span></h1>
         
-        <div id="ui-main">
-            <div class="drop-zone" onclick="document.getElementById('video-input').click()">
-                <input type="file" id="video-input" hidden onchange="start()">
-                <div style="font-size:40px; color:#ffcc00;">⚡</div>
-                <p>SUBIR VIDEO MAESTRO</p>
-            </div>
+        <div id="upload-zone" class="drop-zone" onclick="document.getElementById('file-in').click()">
+            <input type="file" id="file-in" hidden onchange="upload()">
+            <div class="bolt">⚡</div>
+            <p>SUBIR VIDEO MAESTRO</p>
         </div>
-        <div id="ui-loader" style="display:none;">
-            <div class="spinner"></div>
-            <p>FRAGMENTANDO SERIE...</p>
+
+        <div id="monitor-box" class="monitor-box" style="display:none;">
+            <div class="mon-header">🛰️ ESTADO DE CONSOLA</div>
+            <div id="status-text" class="log-text">Sincronizando...</div>
+            <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
     </div>
+
     <script>
-        async function start() {
-            const file = document.getElementById('video-input').files[0];
-            document.getElementById('ui-main').style.display='none';
-            document.getElementById('ui-loader').style.display='block';
+        const source = new EventSource("/api/status");
+        source.onmessage = (e) => {
+            document.getElementById('monitor-box').style.display = 'block';
+            const log = document.getElementById('status-text');
+            const bar = document.getElementById('progress-bar');
+            log.innerText = e.data;
+            
+            if(e.data.includes("📤")) bar.style.width = "60%";
+            if(e.data.includes("✅")) {
+                bar.style.width = "100%";
+                bar.style.background = "#00ff88";
+                setTimeout(() => window.location.reload(), 3000);
+            }
+        };
+
+        async function upload() {
+            const file = document.getElementById('file-in').files[0];
             const fd = new FormData(); fd.append("video", file);
-            await fetch("/api/upload_mally", { method: "POST", body: fd });
-            alert("🔥 MOTOR INICIADO"); window.location.reload();
+            document.getElementById('upload-zone').style.opacity = '0.3';
+            await fetch("/api/upload_mally", {method: "POST", body: fd});
         }
     </script>
 </body>
