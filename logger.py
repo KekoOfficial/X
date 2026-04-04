@@ -1,12 +1,15 @@
-# logger.py
-from datetime import datetime
+import datetime
 
 class Logger:
-    def info(self, msg):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO] ⚡ {msg}")
+    def __init__(self):
+        self.log_file = "database/system.log"
 
-    def success(self, msg):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [OK] 🔥 {msg}")
+    def _write(self, level, msg):
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{now}] [{level}] {msg}\n"
+        print(entry, end="")
+        with open(self.log_file, "a") as f:
+            f.write(entry)
 
-    def error(self, msg):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [ERROR] ❌ {msg}")
+    def info(self, msg): self._write("INFO", msg)
+    def error(self, msg): self._write("ERROR", msg)
