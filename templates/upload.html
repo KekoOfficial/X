@@ -2,51 +2,38 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMPERIO MP v15</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
 </head>
 <body>
     <div class="glass-container">
-        <a href="/settings" class="nexus-link">[ ACCEDER A DATABASE ]</a>
-        <h1>MALLY <span class="cyan">CUTS v15</span></h1>
-        
-        <div id="upload-zone" class="drop-zone" onclick="document.getElementById('file-in').click()">
-            <input type="file" id="file-in" hidden onchange="startMatrix()">
-            <div class="bolt">⚡</div>
-            <p id="main-text">FRAGMENTAR VIDEO MAESTRO</p>
+        <a href="/settings" style="color:#444; text-decoration:none; font-size:10px;">[ CONFIGURAR DATABASE ]</a>
+        <h1>MALLY <span style="color:#00f2ff;">CUTS v15</span></h1>
+        <div class="drop-zone" onclick="document.getElementById('file-in').click()" style="border:1px dashed #222; padding:50px; cursor:pointer; margin:20px 0;">
+            <input type="file" id="file-in" hidden onchange="start()">
+            <p id="tx">SUBIR VIDEO MAESTRO</p>
         </div>
-
-        <div id="monitor-box" class="monitor-box" style="display:none;">
-            <div class="mon-header">🛰️ ANALIZANDO PAQUETES...</div>
-            <div id="status-text" class="log-text">Sincronizando...</div>
-            <div class="progress-bg"><div id="progress-bar"></div></div>
+        <div id="mon" style="display:none;" class="log-box">
+            <div id="st" class="log-text">Sincronizando...</div>
+            <div class="progress-bg"><div id="bar"></div></div>
         </div>
     </div>
-
     <script>
-        const source = new EventSource("/api/status");
-        source.onmessage = (e) => {
-            document.getElementById('monitor-box').style.display = 'block';
-            const log = document.getElementById('status-text');
-            const bar = document.getElementById('progress-bar');
-            
-            log.innerText = e.data;
-            
-            if(e.data.includes("Part")) bar.style.width = "50%";
-            if(e.data.includes("COMPLETADO")) {
-                bar.style.width = "100%";
-                bar.style.background = "#00ff88";
-                setTimeout(() => window.location.reload(), 4000);
+        const s = new EventSource("/api/status");
+        s.onmessage = (e) => {
+            document.getElementById('mon').style.display = 'block';
+            document.getElementById('st').innerText = e.data;
+            if(e.data.includes("📤")) document.getElementById('bar').style.width = "60%";
+            if(e.data.includes("✅")) {
+                document.getElementById('bar').style.width = "100%";
+                setTimeout(() => window.location.reload(), 3000);
             }
         };
-
-        async function startMatrix() {
-            const file = document.getElementById('file-in').files[0];
-            const fd = new FormData(); fd.append("video", file);
-            document.getElementById('main-text').innerText = "SUBIENDO AL SERVIDOR...";
-            document.getElementById('upload-zone').style.borderColor = "#00f2ff";
-            await fetch("/api/upload_mally", {method: "POST", body: fd});
+        async function start() {
+            const f = document.getElementById('file-in').files[0];
+            const d = new FormData(); d.append("video", f);
+            document.getElementById('tx').innerText = "PROCESANDO...";
+            await fetch("/api/upload_mally", {method: "POST", body: d});
         }
     </script>
 </body>
