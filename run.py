@@ -1,49 +1,35 @@
 import os
-import sys
+from dotenv import load_dotenv
 from app.main import create_app
 
-# CONFIGURACIÓN DE ENTORNO IMPERIAL
+# 1. CARGA DE MATRIZ (.env)
+load_dotenv()
+
+# 2. INICIALIZACIÓN DEL NODO V2000
 app = create_app()
 
-def setup_system():
-    """
-    Asegura que la estructura de carpetas optimizada esté intacta 
-    antes de iniciar el motor V10.
-    """
-    directories = [
-        'media/raw', 
-        'media/exports', 
-        'static/css', 
-        'static/js',
-        'templates',
-        'logs'
-    ]
-    
-    print("--- [ MALLY CUTS v18.5 | SYSTEM CHECK ] ---")
-    for folder in directories:
-        if not os.path.exists(folder):
-            os.makedirs(folder, exist_ok=True)
-            print(f"> CREATED: {folder}")
-        else:
-            print(f"> OK: {folder}")
-    print("--- [ CHECK COMPLETADO | MOTOR LISTO ] ---\n")
+if __name__ == "__main__":
+    # Extraemos configuración del .env o usamos valores por defecto
+    port = int(os.getenv("FLASK_PORT", 8000))
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
 
-if __name__ == '__main__':
-    # 1. Preparar el terreno
-    setup_system()
-    
-    # 2. Parámetros de red para acceso desde móvil o PC
-    # Host '0.0.0.0' permite que entres desde tu IP local
-    PORT = 8000
-    
-    print(f"🚀 MALLY CUTS v18 ONLINE")
-    print(f"📡 ACCESO LOCAL: http://localhost:{PORT}")
-    print(f"🔗 ACCESO RED: http://tu-ip-local:{PORT}")
-    print("⚡ MODO: PARALLEL MULTI-CORE PROCESSING ACTIVE")
-    
+    print("\n" + "="*40)
+    print("🚀 SISTEMA MALLY CUTS V2000 ACTIVADO")
+    print(f"📡 PUERTO: {port}")
+    print(f"🔗 URL: http://127.0.0.1:{port}")
+    print("="*40 + "\n")
+
     try:
-        # Ejecución del servidor Flask
-        app.run(host='0.0.0.0', port=PORT, debug=True)
+        # Ejecución Nitro: 
+        # threaded=True permite procesar múltiples peticiones a la vez
+        # host='0.0.0.0' permite acceder desde otros dispositivos en la misma WiFi
+        app.run(
+            host='0.0.0.0', 
+            port=port, 
+            debug=debug_mode, 
+            threaded=True
+        )
     except KeyboardInterrupt:
-        print("\n[!] Motor detenido por el usuario. Cerrando protocolos...")
-        sys.exit(0)
+        print("\n🛑 V2000: Apagado de emergencia detectado. Cerrando hilos...")
+    except Exception as e:
+        print(f"\n❌ CRITICAL_ERROR en el arranque: {e}")
