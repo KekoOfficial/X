@@ -1,84 +1,15 @@
-:root {
-    --cyan: #00f2ff;
-    --dark: #050505;
-    --card: rgba(10, 10, 15, 0.98);
-    --border: rgba(0, 242, 255, 0.2);
-}
+:root { --cyan: #00f2ff; --bg: #050505; }
+body { background: var(--bg); color: #fff; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+.glass-container { background: #0a0a0a; border: 1px solid #111; padding: 40px 25px; border-radius: 20px; text-align: center; width: 85%; max-width: 380px; box-shadow: 0 0 50px rgba(0,0,0,1); }
+.cyan { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
+.nexus-btn { display: block; margin-bottom: 20px; color: var(--cyan); text-decoration: none; font-size: 10px; border: 1px solid #222; padding: 5px; border-radius: 5px; }
 
-body {
-    background: var(--dark);
-    color: #fff;
-    font-family: 'JetBrains Mono', monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
-}
+/* MONITOR BOX */
+.monitor-box { margin-top: 30px; background: #000; border: 1px solid #1a1a1a; padding: 15px; border-radius: 10px; text-align: left; }
+.mon-header { font-size: 8px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
+.log-text { font-size: 13px; color: var(--cyan); text-shadow: 0 0 5px var(--cyan); margin-bottom: 10px; }
+.progress-bg { height: 3px; background: #111; width: 100%; border-radius: 10px; overflow: hidden; }
+#progress-bar { height: 100%; width: 5%; background: var(--cyan); transition: 0.5s; box-shadow: 0 0 10px var(--cyan); }
 
-.glass-container {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 35px 25px;
-    border-radius: 20px;
-    text-align: center;
-    width: 85%;
-    max-width: 380px;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 1);
-}
-
-/* --- BOTÓN NEXUS ULTRA VISIBLE --- */
-.settings-wrapper {
-    margin-bottom: 30px;
-}
-
-.nexus-btn {
-    display: inline-block;
-    background: rgba(0, 242, 255, 0.05);
-    border: 1px solid var(--cyan);
-    color: var(--cyan);
-    padding: 10px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1.5px;
-    transition: 0.3s;
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
-}
-
-.nexus-btn:hover {
-    background: var(--cyan);
-    color: #000;
-    box-shadow: 0 0 25px var(--cyan);
-}
-
-.main-title { font-size: 24px; margin: 0; }
-.cyan-glow { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
-.brand-tag { font-size: 9px; color: #444; letter-spacing: 4px; margin-top: 5px; }
-
-/* --- ZONA DE ACCIÓN --- */
-.drop-zone {
-    border: 1px dashed var(--border);
-    border-radius: 15px;
-    padding: 40px 10px;
-    cursor: pointer;
-    margin-top: 25px;
-}
-
-.bolt-icon { font-size: 45px; color: #ffcc00; filter: drop-shadow(0 0 10px #ffcc00); margin-bottom: 10px; }
-.upload-text { font-size: 14px; font-weight: bold; margin: 10px 0; }
-.info-tag { font-size: 9px; color: #333; }
-
-/* --- LOADER --- */
-.cyber-spinner {
-    width: 40px; height: 40px;
-    border: 3px solid rgba(0, 242, 255, 0.1);
-    border-top: 3px solid var(--cyan);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 20px auto;
-}
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
+.drop-zone { border: 1px dashed #222; padding: 40px 10px; border-radius: 15px; cursor: pointer; }
+.bolt { font-size: 40px; color: #ffcc00; margin-bottom: 10px; }
