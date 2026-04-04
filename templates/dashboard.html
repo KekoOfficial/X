@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MALLY CUTS | GALERÍA DE PROYECTOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root { --neon: #00ff41; --purp: #bc13fe; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; }
+        .navbar { border-bottom: 1px solid var(--neon); padding: 15px; display: flex; justify-content: space-between; background: #000; }
+        .container { padding: 30px; max-width: 900px; margin: auto; }
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); text-align: center; }
+        
+        .project-list { margin-top: 30px; }
+        .project-card { 
+            border: 1px solid var(--purp); 
+            background: #0a0a0a; 
+            margin-bottom: 15px; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: 0.3s;
+        }
+        .project-card:hover { box-shadow: 0 0 15px var(--purp); transform: scale(1.01); }
+        .project-info { color: var(--neon); font-weight: bold; }
+        .btn-view { 
+            background: var(--purp); 
+            color: #fff; 
+            border: none; 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" style="color: var(--neon); text-decoration: none;"><< VOLVER</a>
+        <span style="color: var(--purp);">SISTEMA DE ARCHIVOS V18.5</span>
+    </div>
+
+    <div class="container">
+        <h1>GALERÍA DE CORTES</h1>
+        <p style="text-align: center; font-size: 0.7rem; color: #666;">> PROYECTOS ALMACENADOS EN MEDIA/EXPORTS</p>
+
+        <div class="project-list">
+            {% for project in projects %}
+            <div class="project-card">
+                <div class="project-info">
+                    📁 {{ project }}
+                </div>
+                <a href="#" class="btn-view">ABRIR CARPETA</a>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: #444; margin-top: 50px;">
+                [!] NO SE ENCONTRARON PROYECTOS GENERADOS
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
