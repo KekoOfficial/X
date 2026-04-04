@@ -1,19 +1,11 @@
-# config.py - MALLY NEXUS v13
-import os, json
+import os
 
-DB_PATH = "database/settings.json"
-UPLOAD_FOLDER = "uploads"
-DOWNLOAD_FOLDER = "downloads"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_DIR = os.path.join(BASE_DIR, "database")
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
+DOWNLOADS_DIR = os.path.join(BASE_DIR, "downloads")
+DB_PATH = os.path.join(DATABASE_DIR, "config.json")
 
-def get_nexus_settings():
-    """Lee los tokens de la base de datos local sin exponerlos en el código."""
-    if not os.path.exists(DB_PATH):
-        return {"bot_token": None, "chat_id": None}
-    with open(DB_PATH, "r") as f:
-        return json.load(f)
-
-def init_nexus():
-    """Prepara las carpetas de la Consola."""
-    for folder in [UPLOAD_FOLDER, DOWNLOAD_FOLDER, "database"]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+# Asegurar que existan las carpetas
+for folder in [DATABASE_DIR, UPLOADS_DIR, DOWNLOADS_DIR]:
+    os.makedirs(folder, exist_ok=True)
