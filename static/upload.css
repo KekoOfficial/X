@@ -1,7 +1,5 @@
 :root {
-    --cyan: #00f2ff;
     --bg: #050505;
-    --card: #0a0a0a;
     --border: #1a1a1a;
 }
 
@@ -14,60 +12,41 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    overflow: hidden;
+}
+
+/* Animación de Color en Tiempo Real */
+@keyframes neonFlow {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
 }
 
 .glass-container {
-    background: var(--card);
+    background: #0a0a0a;
     border: 1px solid var(--border);
     padding: 30px;
     border-radius: 20px;
     text-align: center;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 0 40px rgba(0,0,0,1);
+    animation: neonFlow 10s linear infinite; /* Cambio de color constante */
 }
 
-.nexus-btn {
-    display: inline-block;
-    color: var(--cyan);
-    text-decoration: none;
-    font-size: 10px;
-    letter-spacing: 2px;
-    border: 1px solid var(--border);
-    padding: 8px 15px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    transition: 0.3s;
-}
+.cyan { color: #00f2ff; text-shadow: 0 0 15px #00f2ff; }
 
-.nexus-btn:hover { background: var(--cyan); color: #000; }
-
-h1 { font-size: 22px; margin-bottom: 5px; }
-.cyan { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-
-/* ZONA DE CARGA */
-.drop-zone {
-    border: 1px dashed #333;
-    padding: 40px 10px;
-    border-radius: 15px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-
-.bolt { font-size: 40px; color: #ffcc00; margin-bottom: 10px; }
-
-/* MONITOR NITRO */
 .monitor-box {
     margin-top: 25px;
     background: #000;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
     padding: 15px;
     border-radius: 10px;
-    text-align: left;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
 }
 
-.mon-header { font-size: 8px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
-.log-text { font-size: 13px; color: var(--cyan); margin-bottom: 10px; }
-
-.progress-bg { height: 4px; background: #111; width: 100%; border-radius: 10px; overflow: hidden; }
-#progress-bar { height: 100%; width: 5%; background: var(--cyan); transition: 0.5s; box-shadow: 0 0 10px var(--cyan); }
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #00f2ff;
+    transition: 0.5s;
+    box-shadow: 0 0 15px #00f2ff;
+}
