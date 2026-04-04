@@ -1,8 +1,0 @@
-body { background: #0b0b0d; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-.status-card { background: #161618; padding: 30px; border-radius: 20px; text-align: center; width: 320px; border: 1px solid #0088cc44; }
-.loader-wrapper { background: #222; height: 8px; border-radius: 10px; margin: 25px 0; overflow: hidden; }
-.progress-bar { background: #0088cc; width: 10%; height: 100%; transition: width 1s ease; }
-.progress-bar.done { background: #28a745; box-shadow: 0 0 10px #28a745; }
-.info-msg { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
-.telegram-hint { font-size: 0.8em; color: #555; }
-.btn-back { display: inline-block; margin-top: 20px; color: #0088cc; text-decoration: none; font-size: 0.9em; }
