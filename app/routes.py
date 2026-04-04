@@ -1,12 +1,32 @@
-from flask import Blueprint, render_template, request, jsonify, send_from_directory
-from app.services import VideoEngine
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 import os
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
     return render_template('index.html')
+
+@bp.route('/api/auto-upload', methods=['POST'])
+def auto_upload():
+    if 'video_file' not in request.files:
+        return redirect(url_for('main.index'))
+    
+    file = request.files['video_file']
+    if file.filename == '':
+        return redirect(url_for('main.index'))
+
+    # 1. Asegurar nombre y guardar en la estructura imperial
+    filename = secure_filename(file.filename)
+    upload_path = os.path.join('media', 'raw', filename)
+    
+    # 2. Guardar físicamente el archivo
+    file.save(upload_path)
+    
+    # 3. Redirigir al editor pasando la ruta generada automáticamente
+    # Así ya no tienes que escribir NADA.
+    return redirect(url_for('main.editor', path=upload_path))
 
 @bp.route('/editor')
 def editor():
@@ -15,17 +35,7 @@ def editor():
 
 @bp.route('/gallery')
 def gallery():
-    # Lista las carpetas de proyectos en media/exports
     export_path = 'media/exports'
     projects = [d for d in os.listdir(export_path) if os.path.isdir(os.path.join(export_path, d))]
-    projects.sort(reverse=True) # Los más nuevos primero
+    projects.sort(reverse=True)
     return render_template('dashboard.html', projects=projects)
-
-@bp.route('/api/cut', methods=['POST'])
-def process_cut():
-    data = request.json
-    # El motor paralelo se activa aquí
-    result_dir = VideoEngine.execute_parallel_cut(data['path'], data['seconds'])
-    if result_dir:
-        return jsonify({"status": "success", "folder": result_dir})
-    return jsonify({"status": "error"}), 500
