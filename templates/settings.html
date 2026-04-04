@@ -1,37 +1,48 @@
-async function saveNexus() {
-    const btn = document.querySelector('.save-btn');
-    const data = {
-        bot_token: document.getElementById('bot-token').value,
-        chat_id: document.getElementById('chat-id').value
-    };
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NEXUS DATABASE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body>
+    <div class="settings-card">
+        <div class="header">
+            <span style="color:#00f2ff; font-size:10px;">⚙️</span>
+            <h3>NEXUS DATABASE</h3>
+        </div>
+        <div class="input-group">
+            <label>BOT TOKEN</label>
+            <input type="text" id="bot-token" placeholder="Ingrese Token">
+        </div>
+        <div class="input-group">
+            <label>CHAT ID / CANAL</label>
+            <input type="text" id="chat-id" placeholder="-100xxxxxxxxxx">
+        </div>
+        <button class="save-btn" id="btn-save" onclick="saveNexus()">ACTUALIZAR BASE DE DATOS</button>
+    </div>
 
-    // Feedback visual inmediato
-    btn.innerText = "GUARDANDO...";
-    btn.style.opacity = "0.7";
-
-    try {
-        const res = await fetch("/api/save_settings", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(data)
-        });
-
-        if(res.ok) {
-            btn.innerText = "¡GUARDADO!";
-            btn.style.background = "#00ff88"; // Verde éxito
+    <script>
+        async function saveNexus() {
+            const btn = document.getElementById('btn-save');
+            const data = {
+                bot_token: document.getElementById('bot-token').value,
+                chat_id: document.getElementById('chat-id').value
+            };
+            btn.innerText = "GUARDANDO...";
             
-            // Esperar 1 segundo para que veas el éxito y luego cerrar
-            setTimeout(() => {
-                // Intentar volver a la consola principal
-                window.location.href = "/";
-            }, 1000);
-        } else {
-            alert("❌ Error al guardar en la base de datos.");
-            btn.innerText = "ACTUALIZAR BASE DE DATOS";
-            btn.style.opacity = "1";
+            const res = await fetch("/api/save_settings", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                btn.innerText = "¡EXITO! REDIRIGIENDO...";
+                btn.style.background = "#00ff88";
+                setTimeout(() => { window.location.href = "/"; }, 1000);
+            }
         }
-    } catch (err) {
-        alert("❌ Error de conexión con la Consola.");
-        btn.innerText = "ACTUALIZAR BASE DE DATOS";
-    }
-}
+    </script>
+</body>
+</html>
