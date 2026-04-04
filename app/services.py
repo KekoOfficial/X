@@ -5,8 +5,8 @@ import requests
 from concurrent.futures import ProcessPoolExecutor
 
 # --- CONFIGURACIÓN IMPERIAL ---
-BOT_TOKEN = "TU_TOKEN_DE_BOT_AQUÍ"
-CHANNEL_ID = "@TU_CANAL_O_ID" # Ejemplo: @ImperioMP_Canal o -100123456789
+BOT_TOKEN = "8759783698:AAFUuC67X--qXoqD4D2YQ7RYlPlHoQmoYlU"
+CHANNEL_ID = "-1003584710096" # Ejemplo: @ImperioMP_Canal o -100123456789
 
 class VideoEngine:
     @staticmethod
