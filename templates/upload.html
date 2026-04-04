@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MALLY MONITOR v14</title>
+    <title>MALLY NITRO v14.5</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
 </head>
 <body>
     <div class="glass-container">
-        <a href="/settings" class="nexus-btn">⚙️ NEXUS CONFIG</a>
-        <h1>MALLY <span class="cyan">MONITOR v14</span></h1>
+        <a href="/settings" class="nexus-btn">⚙️ NEXUS DATABASE</a>
+        <h1>MALLY <span class="cyan">NITRO v14.5</span></h1>
         
         <div id="upload-zone" class="drop-zone" onclick="document.getElementById('file-in').click()">
-            <input type="file" id="file-in" hidden onchange="upload()">
+            <input type="file" id="file-in" hidden onchange="runNitro()">
             <div class="bolt">⚡</div>
             <p>SUBIR VIDEO MAESTRO</p>
         </div>
 
         <div id="monitor-box" class="monitor-box" style="display:none;">
-            <div class="mon-header">🛰️ ESTADO DE CONSOLA</div>
+            <div class="mon-header">🛰️ MONITOR DE RÁFAGA</div>
             <div id="status-text" class="log-text">Sincronizando...</div>
             <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
@@ -27,20 +27,22 @@
     <script>
         const source = new EventSource("/api/status");
         source.onmessage = (e) => {
-            document.getElementById('monitor-box').style.display = 'block';
+            const monitor = document.getElementById('monitor-box');
             const log = document.getElementById('status-text');
             const bar = document.getElementById('progress-bar');
+            
+            monitor.style.display = 'block';
             log.innerText = e.data;
             
-            if(e.data.includes("📤")) bar.style.width = "60%";
-            if(e.data.includes("✅")) {
+            if(e.data.includes("ENVIANDO")) bar.style.width = "60%";
+            if(e.data.includes("COMPLETADA")) {
                 bar.style.width = "100%";
                 bar.style.background = "#00ff88";
                 setTimeout(() => window.location.reload(), 3000);
             }
         };
 
-        async function upload() {
+        async function runNitro() {
             const file = document.getElementById('file-in').files[0];
             const fd = new FormData(); fd.append("video", file);
             document.getElementById('upload-zone').style.opacity = '0.3';
