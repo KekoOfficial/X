@@ -12,9 +12,6 @@ def index():
 
 @bp.route('/api/brutal-process', methods=['POST'])
 def brutal_process():
-    """
-    Recibe el video de la galería e inicia el bombardeo a Telegram.
-    """
     if 'video_file' not in request.files:
         return redirect(url_for('main.index'))
     
@@ -22,19 +19,22 @@ def brutal_process():
     if file.filename == '':
         return redirect(url_for('main.index'))
 
-    # 1. Guardar el archivo en media/raw de forma segura
+    # Guardamos rápido en la carpeta interna
     filename = secure_filename(file.filename)
     raw_path = os.path.join('media', 'raw', filename)
     file.save(raw_path)
     
-    # 2. DISPARO ASÍNCRONO (Cero paciencia)
-    # Lanzamos el proceso en segundo plano para que la web no se cuelgue
-    engine_thread = threading.Thread(
-        target=VideoEngine.execute_parallel_cut, 
-        args=(raw_path, 60) # Cortes de 60 segundos fijos
-    )
-    engine_thread.daemon = True
-    engine_thread.start()
+    # --- AQUÍ ESTÁ EL TRUCO DE LA VELOCIDAD ---
+    # Lanzamos el motor en un hilo "Daemon" para que Flask responda 
+    # de inmediato y no se quede la pantalla en blanco.
+    def run_engine():
+        VideoEngine.execute_parallel_cut(raw_path, 60)
+        # Opcional: Borrar original para no llenar memoria
+        # os.remove(raw_path)
+
+    thread = threading.Thread(target=run_engine)
+    thread.daemon = True
+    thread.start()
     
-    # 3. Liberar el navegador de inmediato
+    # Volvemos al inicio al instante
     return redirect(url_for('main.index'))
